@@ -5,15 +5,15 @@ import { navigationRef } from "./RootNavigation";
 import stacks from "./stackEnum";
 import { OnBoardStack } from './onboardStack';
 import { AppStack } from './appStack';
-//
-const Stack = createNativeStackNavigator();
+import { useSelector } from 'react-redux';
 //
 function RouteContainer() {
+    const stackName = useSelector(state => state.navigationReducer)
     return (
         <NavigationContainer
             ref={navigationRef}
         >
-            {manageStack(stacks.ON_BOARD_STACK)}
+            {manageStack(stackName.stack_name)}
         </NavigationContainer>
     )
 }

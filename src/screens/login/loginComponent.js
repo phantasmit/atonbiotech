@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     View,
     StyleSheet,
@@ -17,11 +17,17 @@ import { Button } from 'react-native-paper';
 import colors from '../../assets/appColor/colors';
 import CustomTextInput from '../../component/CustomTextInput';
 import { useResponsiveLayout } from '../../component/Useresponsivelayout';
-
+import { useDispatch } from 'react-redux';
+import { changeStack } from '../../navigation/navigationSlice';
+import stackEnum from '../../navigation/stackEnum';
 const LoginComponent = () => {
+
     const [isHidden, setIsHidden] = useState(true);
+
     const layout = useResponsiveLayout();
     const styles = useMemo(() => makeStyles(layout), [layout]);
+
+    const dispatch = useDispatch();
 
     return (
         <KeyboardAvoidingView
@@ -77,7 +83,7 @@ const LoginComponent = () => {
                                     onSubmit={async (values, { setSubmitting }) => {
                                         setSubmitting(true);
                                         try {
-                                            alert('test')
+                                            dispatch(changeStack(stackEnum.APP_STACK));
                                         } finally {
                                             setSubmitting(false);
                                         }

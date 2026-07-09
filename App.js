@@ -7,16 +7,14 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import colors from './src/assets/appColor/colors';
 import { PaperProvider, DefaultTheme } from 'react-native-paper';
 import RouteContainer from './src/navigation/route';
+//import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function App() {
 
 
     return (
         <Provider store={store}>
-            <PersistGate
-                loading={null}
-                persistor={persistor}>
-
+            <PersistGate persistor={persistor}>
                 <SafeAreaProvider>
                     <SafeAreaView style={{ flex: 1, backgroundColor: colors.ICON_COLOR_PRIMARY }} edges={["top", 'bottom']}>
                         <PaperProvider
@@ -37,9 +35,10 @@ export default function App() {
                                 translucent={false}
                             />
                             {/* <RouteContainer /> */}
-                            <View style={{ flex: 1 }}>
+
+                           
                                 <RouteContainer />
-                            </View>
+                           
                         </PaperProvider>
                     </SafeAreaView>
                 </SafeAreaProvider>

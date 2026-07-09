@@ -4,9 +4,10 @@ import migrations from './migrations';
 const persistConfig = {
     key: 'root',
     storage: AsyncStorage,
-    version: 1,
-    migrate: migrations,
-    whitelist: [],
+    version: 2,
+    migrate: migrations
+    // whitelist: [],
+    // blacklist: []
 };
 
 export default persistConfig;
