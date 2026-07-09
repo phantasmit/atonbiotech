@@ -211,7 +211,7 @@ import { changeStack } from "./navigationSlice";
 import stacks from "./stackEnum";
 
 const NavigationRowData = (props) => {
-    const { data = [], onItemPress = () => {}, isTabletWidth } = props;
+    const { data = [], onItemPress = () => { }, isTabletWidth } = props;
     return (
         <>
             {data.map((item, index) => (
@@ -263,7 +263,7 @@ const DrawerOption = (props) => {
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.WHITE_COLOR }}>
-            {/* <View style={[styles.header, { padding: isTabletWidth ? 24 : 20 }]}>
+            <View style={[styles.header, { padding: isTabletWidth ? 24 : 20 }]}>
                 <Image
                     source={logo}
                     resizeMode="contain"
@@ -298,7 +298,7 @@ const DrawerOption = (props) => {
                     textData={{ title: 'Categories', textColor: '#525252' }}
                 />
                 {selectedIndex === 0 && (
-                    <NavigationRowData data={['Category A', 'Category B']} isTabletWidth={isTabletWidth} />
+                    <NavigationRowData data={['Category A', 'Category B']} isTabletWidth={isTabletWidth} onItemPress={() => { navigation.navigate('medicineList') }} />
                 )}
 
                 <DrawerMenu
@@ -309,7 +309,7 @@ const DrawerOption = (props) => {
                     textData={{ title: 'Doctor List', textColor: '#525252' }}
                 />
                 {selectedIndex === 1 && (
-                    <NavigationRowData data={['Doctor A', 'Doctor B', 'Doctor C']} isTabletWidth={isTabletWidth} />
+                    <NavigationRowData data={['Doctor A', 'Doctor B', 'Doctor C']} isTabletWidth={isTabletWidth} onItemPress={() => { navigation.navigate('medicineList') }} />
                 )}
 
                 <DrawerMenu
@@ -331,31 +331,31 @@ const DrawerOption = (props) => {
                 <Text style={styles.sectionLabel}>Other Options</Text>
 
                 <DrawerMenu
-                    onPress={() => {}}
+                    onPress={() => { }}
                     containerData={{ backgroundType: 1 }}
                     iconData={{ iconName: 'info-circle', iconColor: '#55D88A' }}
                     textData={{ title: 'About Us', textColor: '#525252' }}
                 />
                 <DrawerMenu
-                    onPress={() => {}}
+                    onPress={() => { }}
                     containerData={{ backgroundType: 1 }}
                     iconData={{ iconName: 'phone', iconColor: '#3DC2FF' }}
                     textData={{ title: 'Contact Us', textColor: '#525252' }}
                 />
                 <DrawerMenu
-                    onPress={() => {}}
+                    onPress={() => { }}
                     containerData={{ backgroundType: 1 }}
                     iconData={{ iconName: 'book', iconColor: '#5A67FF' }}
                     textData={{ title: 'Privacy Policy', textColor: '#525252' }}
                 />
                 <DrawerMenu
-                    onPress={() => {}}
+                    onPress={() => { }}
                     containerData={{ backgroundType: 1 }}
                     iconData={{ iconName: 'share-alt', iconColor: '#A2EBBF' }}
                     textData={{ title: 'Share this app', textColor: '#525252' }}
                 />
                 <DrawerMenu
-                    onPress={() => {}}
+                    onPress={() => { }}
                     containerData={{ backgroundType: 1 }}
                     iconData={{ iconName: 'star', iconColor: '#FFCC29' }}
                     textData={{ title: 'Rate Us', textColor: '#525252' }}
@@ -366,7 +366,7 @@ const DrawerOption = (props) => {
                     iconData={{ iconName: 'power-off', iconColor: '#F49DA9' }}
                     textData={{ title: 'Logout', textColor: '#525252' }}
                 />
-            </ScrollView> */}
+            </ScrollView>
         </View>
     );
 };

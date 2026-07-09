@@ -93,6 +93,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 //
 import { TodayComponent } from '../screens/today/todayComponent';
 import { TomorrowComponent } from '../screens/tomorrow/tomorrowComponent';
+import { AllAppointmentComponent } from '../screens/allAppointment/allAppointmentComponent';
 //
 const Tab = createBottomTabNavigator();
 
@@ -104,7 +105,7 @@ const Tabs = () => {
     const iconSize = isTabletWidth ? 24 : 20;
     const labelSize = isTabletWidth ? 12 : 10;
     const barHeight = (isTabletWidth ? 56 : 60) + insets.bottom;
-   
+
     return (
         <Tab.Navigator
             screenOptions={{
@@ -149,6 +150,16 @@ const Tabs = () => {
                     tabBarIcon: ({ color }) => (<Icon name="calendar-o" size={iconSize} color={color} />),
                     tabBarLabel: ({ color }) => (
                         <Text numberOfLines={1} style={{ color, fontSize: labelSize }}>Tomorrow</Text>
+                    ),
+                }}
+            />
+            <Tab.Screen
+                name="AllAppointment"
+                component={AllAppointmentComponent}
+                options={{
+                    tabBarIcon: ({ color }) => (<Icon name="calendar-o" size={iconSize} color={color} />),
+                    tabBarLabel: ({ color }) => (
+                        <Text numberOfLines={1} style={{ color, fontSize: labelSize }}>All Appointment</Text>
                     ),
                 }}
             />

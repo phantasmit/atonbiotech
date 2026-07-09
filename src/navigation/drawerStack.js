@@ -54,12 +54,12 @@ const DrawerStack = () => {
                 headerShown: false,
                 gestureEnabled: true,
                 // Pinned sidebar on tablet/iPad, standard swipe-in overlay on phone
-                drawerType: isTabletWidth ? 'permanent' : 'front',
-                swipeEnabled: !isTabletWidth,
+                //drawerType: isTabletWidth ? 'permanent' : 'front',
+                swipeEnabled: true,
                 drawerPosition: 'left',
-                overlayColor: 'red',
+                //overlayColor: 'red',
                 drawerStyle: {
-                    width: isTabletWidth ? 320 : width * 0.8,
+                    width: isTabletWidth ? 320 : width * 0.7,
                 },
                 // Explicit background so the scene content never falls through
                 // to the native root view (that was the source of your black screen)

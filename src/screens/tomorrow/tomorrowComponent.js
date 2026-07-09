@@ -1,19 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    View,
-    Image
+    View
 } from "react-native";
-import { splash } from '../../utils/images';
 import { useNavigation } from '@react-navigation/native';
-
+//
+import HeaderComponent from "../../hoc/headerComponent";
+import HOCComponent from "../../hoc/hocComponent";
+import * as RootNavigation from "../../navigation/RootNavigation";
+//
+const HeaderComponents = HeaderComponent(View)
+const HOCComponents = HOCComponent(HeaderComponents);
+//
 
 const TomorrowComponent = () => {
     const navigation = useNavigation();
 
     return (
-        <View style={{ flex: 1, }}>
-            <Image source={splash} resizeMethod="contain" style={{ width: '100%', height: '100%' }} />
-        </View>
+        <HOCComponents onPress={() => {
+            RootNavigation.dispatchDrawer()
+        }}>
+            <View style={{ flex: 1, backgroundColor: 'red' }}></View>
+        </HOCComponents>
     );
 };
 

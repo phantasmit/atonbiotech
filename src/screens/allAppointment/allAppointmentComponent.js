@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -14,54 +14,66 @@ import { Menu } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import colors from '../../assets/appColor/colors';
 import fonts from '../../assets/fonts/fonts';
+import AppointmentActionIcons from '../../component/AppointmentActionIcons';
+//import CloseAppointmentModal from '../../component/CloseAppointmentModal';
 import ExpandableFab from '../../component/ExpandableFab';
 
 // ---------- Mock data ----------
 const DOCTOR_NAMES = [
-    'Dr. Sarah Mitchell', 'Dr. James Carter', 'Dr. Emily Chen',
-    'Dr. Michael Brown', 'Dr. Priya Nair', 'Dr. Robert Lee',
-    'Dr. Anjali Verma', 'Dr. David Kim',
+    'Harsh Harani', 'Rahul Mehta', 'Dr. Sarah Mitchell', 'Dr. James Carter',
+    'Dr. Emily Chen', 'Dr. Michael Brown', 'Dr. Priya Nair', 'Dr. Robert Lee',
 ];
-const STATUSES = ['Confirmed', 'Pending', 'Cancelled'];
+const STATUSES = ['Confirmed', 'Pending', 'Cancelled', 'Closed'];
 const STATUS_COLORS = {
     Confirmed: '#268872',
     Pending: '#B98900',
     Cancelled: '#D2434B',
+    Closed: '#777777',
 };
 const TIMES = ['09:00 AM', '10:30 AM', '11:15 AM', '01:00 PM', '02:45 PM', '04:00 PM'];
 
-const formatDate = (d) =>
-    d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
+const pad = (n) => String(n).padStart(2, '0');
+const formatISODate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
-const generateMockAppointments = (count, baseDate) =>
-    Array.from({ length: count }, (_, i) => ({
-        id: `appt-${i + 1}`,
-        doctorName: DOCTOR_NAMES[i % DOCTOR_NAMES.length],
-        date: formatDate(baseDate),
-        time: TIMES[i % TIMES.length],
-        status: STATUSES[i % STATUSES.length],
-    }));
+const generateMockAppointments = (count) =>
+    Array.from({ length: count }, (_, i) => {
+        // Spread mock dates across the past ~3 years for variety, matching the screenshot
+        const d = new Date();
+        d.setDate(d.getDate() - i * 37 - (i % 5));
+        d.setFullYear(d.getFullYear() - (i % 3));
+        return {
+            id: `appt-${i + 1}`,
+            doctorName: DOCTOR_NAMES[i % DOCTOR_NAMES.length],
+            date: formatISODate(d),
+            time: TIMES[i % TIMES.length],
+            status: STATUSES[i % STATUSES.length],
+        };
+    });
 
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
 
 // ---------- Component ----------
-const TodayComponent = () => {
+const AllAppointmentComponent = () => {
     const navigation = useNavigation();
     const { width } = useWindowDimensions();
-    const isTableLayout = width >= 700; // tablet/iPad or landscape phone -> table, else cards
+    const isTableLayout = width >= 700;
 
-    const today = useMemo(() => new Date(), []);
-    const allAppointments = useMemo(() => generateMockAppointments(23, today), [today]);
+    const allAppointments = useMemo(() => generateMockAppointments(37), []);
 
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(0);
     const [itemsPerPage, setItemsPerPage] = useState(5);
-    const [menuVisible, setMenuVisible] = useState(false);
+    const [perPageMenuVisible, setPerPageMenuVisible] = useState(false);
+
+    const [closeModalVisible, setCloseModalVisible] = useState(false);
+    const [selectedAppointment, setSelectedAppointment] = useState(null);
 
     const filtered = useMemo(() => {
         if (!search.trim()) return allAppointments;
         const q = search.trim().toLowerCase();
-        return allAppointments.filter((a) => a.doctorName.toLowerCase().includes(q));
+        return allAppointments.filter(
+            (a) => a.doctorName.toLowerCase().includes(q) || a.status.toLowerCase().includes(q)
+        );
     }, [search, allAppointments]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
@@ -73,9 +85,31 @@ const TodayComponent = () => {
     const goNext = () => setPage((p) => Math.min(totalPages - 1, p + 1));
     const openDrawer = () => navigation.dispatch(DrawerActions.openDrawer());
 
-    // useEffect(() => {
-    //     navigation.navigate('addDoctor')
-    // }, [])
+    const openCloseModal = (appointment) => {
+        setSelectedAppointment(appointment);
+        setCloseModalVisible(true);
+    };
+
+    const handleCloseSubmit = (reason) => {
+        // TODO: wire to real API / redux action using selectedAppointment.id + reason
+        console.log('Closing appointment', selectedAppointment?.id, 'reason:', reason);
+        setCloseModalVisible(false);
+        setSelectedAppointment(null);
+    };
+
+    const handleEdit = (item) => {
+        // TODO: navigate to edit screen with item
+    };
+
+    const handleDelete = (item) => {
+        // TODO: confirm + delete
+    };
+
+    const StatusBadge = ({ status }) => (
+        <View style={[styles.badge, { backgroundColor: (STATUS_COLORS[status] || '#999') + '22' }]}>
+            <Text style={[styles.badgeText, { color: STATUS_COLORS[status] || '#999' }]}>{status}</Text>
+        </View>
+    );
 
     const renderTableHeader = () => (
         <View style={styles.tableHeaderRow}>
@@ -83,13 +117,7 @@ const TodayComponent = () => {
             <Text style={[styles.headerCell, { flex: 1.2 }]}>Appointment Date</Text>
             <Text style={[styles.headerCell, { flex: 1 }]}>Appointment Time</Text>
             <Text style={[styles.headerCell, { flex: 0.9 }]}>Status</Text>
-            <Text style={[styles.headerCell, { flex: 0.8, textAlign: 'right' }]}>Action</Text>
-        </View>
-    );
-
-    const StatusBadge = ({ status }) => (
-        <View style={[styles.badge, { backgroundColor: (STATUS_COLORS[status] || '#999') + '22' }]}>
-            <Text style={[styles.badgeText, { color: STATUS_COLORS[status] || '#999' }]}>{status}</Text>
+            <Text style={[styles.headerCell, { flex: 1.1, textAlign: 'right' }]}>Action</Text>
         </View>
     );
 
@@ -99,13 +127,12 @@ const TodayComponent = () => {
             <Text style={[styles.cell, { flex: 1.2 }]}>{item.date}</Text>
             <Text style={[styles.cell, { flex: 1 }]}>{item.time}</Text>
             <View style={{ flex: 0.9 }}><StatusBadge status={item.status} /></View>
-            <View style={{ flex: 0.8, flexDirection: 'row', justifyContent: 'flex-end' }}>
-                <TouchableOpacity style={styles.iconBtn}>
-                    <Icon name="eye" size={16} color="#3DC2FF" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.iconBtn}>
-                    <Icon name="pencil" size={15} color="#268872" />
-                </TouchableOpacity>
+            <View style={{ flex: 1.1, alignItems: 'flex-end' }}>
+                <AppointmentActionIcons
+                    onEdit={() => handleEdit(item)}
+                    onClose={() => openCloseModal(item)}
+                    onDelete={() => handleDelete(item)}
+                />
             </View>
         </View>
     );
@@ -122,15 +149,12 @@ const TodayComponent = () => {
                 <Icon name="clock-o" size={12} color="#888" style={{ marginLeft: 14 }} />
                 <Text style={styles.cardMetaText}>{item.time}</Text>
             </View>
-            <View style={styles.cardActionsRow}>
-                <TouchableOpacity style={styles.cardActionBtn}>
-                    <Icon name="eye" size={13} color="#3DC2FF" />
-                    <Text style={[styles.cardActionText, { color: '#3DC2FF' }]}>View</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.cardActionBtn}>
-                    <Icon name="pencil" size={13} color="#268872" />
-                    <Text style={[styles.cardActionText, { color: '#268872' }]}>Edit</Text>
-                </TouchableOpacity>
+            <View style={{ marginTop: 12 }}>
+                <AppointmentActionIcons
+                    onEdit={() => handleEdit(item)}
+                    onClose={() => openCloseModal(item)}
+                    onDelete={() => handleDelete(item)}
+                />
             </View>
         </View>
     );
@@ -143,18 +167,13 @@ const TodayComponent = () => {
                     <Icon name="bars" size={20} color="#fff" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle} numberOfLines={1}>Aton Biotech</Text>
-                <TouchableOpacity onPress={() => { navigation.navigate('myProfile') }}>
-                    <Image
-                        source={{ uri: 'https://i.pravatar.cc/100?img=12' }}
-                        style={styles.avatar}
-                    />
-                </TouchableOpacity>
+                <Image source={{ uri: 'https://i.pravatar.cc/100?img=12' }} style={styles.avatar} />
             </View>
 
             <FlatList
                 data={pageData}
                 keyExtractor={(item) => item.id}
-                key={isTableLayout ? 'table' : 'cards'} // force re-mount layout cleanly when switching modes
+                key={isTableLayout ? 'table' : 'cards'}
                 contentContainerStyle={[
                     styles.listContent,
                     { paddingHorizontal: isTableLayout ? 20 : 12 },
@@ -162,9 +181,7 @@ const TodayComponent = () => {
                 ListHeaderComponent={
                     <>
                         <View style={[styles.subHeader, !isTableLayout && styles.subHeaderStacked]}>
-                            <Text style={styles.titleText}>
-                                Appointments: <Text style={styles.dateText}>{formatDate(today)}</Text>
-                            </Text>
+                            <Text style={styles.titleText}>All Appointments</Text>
                             <View style={[styles.searchWrap, !isTableLayout && { width: '100%', marginTop: 10 }]}>
                                 <Icon name="search" size={14} color="#999" style={{ marginRight: 8 }} />
                                 <TextInput
@@ -193,10 +210,13 @@ const TodayComponent = () => {
                         <View style={styles.footerLeft}>
                             <Text style={styles.footerLabel}>Items per page:</Text>
                             <Menu
-                                visible={menuVisible}
-                                onDismiss={() => setMenuVisible(false)}
+                                visible={perPageMenuVisible}
+                                onDismiss={() => setPerPageMenuVisible(false)}
                                 anchor={
-                                    <TouchableOpacity style={styles.perPageBtn} onPress={() => setMenuVisible(true)}>
+                                    <TouchableOpacity
+                                        style={styles.perPageBtn}
+                                        onPress={() => setPerPageMenuVisible(true)}
+                                    >
                                         <Text style={styles.perPageText}>{itemsPerPage}</Text>
                                         <Icon name="caret-down" size={12} color="#555" style={{ marginLeft: 6 }} />
                                     </TouchableOpacity>
@@ -205,7 +225,7 @@ const TodayComponent = () => {
                                 {ITEMS_PER_PAGE_OPTIONS.map((opt) => (
                                     <Menu.Item
                                         key={opt}
-                                        onPress={() => { setItemsPerPage(opt); setPage(0); setMenuVisible(false); }}
+                                        onPress={() => { setItemsPerPage(opt); setPage(0); setPerPageMenuVisible(false); }}
                                         title={String(opt)}
                                     />
                                 ))}
@@ -236,17 +256,21 @@ const TodayComponent = () => {
                 }
             />
 
-            {/* <TouchableOpacity style={styles.fab} activeOpacity={0.85}>
-                <Icon name="plus" size={22} color="#fff" />
-            </TouchableOpacity> */}
             <ExpandableFab
                 mainColor={colors.ICON_COLOR_PRIMARY}
                 actions={[
-                    { label: 'Add Appointment', icon: 'plus', color: '#D2434B', onPress: () => { navigation.navigate('AddAppointment') } },
-                    { label: 'Add Label', icon: 'plus', color: '#FCCE3B', onPress: () => { navigation.navigate('AddAppointment') } },
-                    { label: 'Add Doctor', icon: 'plus', color: '#55D88A', onPress: () => { navigation.navigate('addDoctor') } },
+                    { label: 'Add Appointment', icon: 'plus', color: '#D2434B', onPress: () => {} },
+                    { label: 'Add Label', icon: 'plus', color: '#FCCE3B', onPress: () => {} },
+                    { label: 'Add Doctor', icon: 'plus', color: '#55D88A', onPress: () => {} },
                 ]}
             />
+
+            {/* <CloseAppointmentModal
+                visible={closeModalVisible}
+                doctorName={selectedAppointment?.doctorName || ''}
+                onClose={() => setCloseModalVisible(false)}
+                onSubmit={handleCloseSubmit}
+            /> */}
         </View>
     );
 };
@@ -279,7 +303,6 @@ const styles = StyleSheet.create({
     },
     subHeaderStacked: { flexDirection: 'column', alignItems: 'flex-start' },
     titleText: { fontSize: 20, fontWeight: '700', color: '#111', fontFamily: fonts.POPPINS_REGULAR },
-    dateText: { color: colors.ICON_COLOR_PRIMARY },
 
     searchWrap: {
         flexDirection: 'row',
@@ -302,7 +325,6 @@ const styles = StyleSheet.create({
     tableRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
     cell: { fontSize: 13, color: '#333', paddingRight: 6 },
     rowDivider: { height: 1, backgroundColor: '#F0F0F0' },
-    iconBtn: { paddingHorizontal: 8 },
 
     badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
     badgeText: { fontSize: 11, fontWeight: '700' },
@@ -318,9 +340,6 @@ const styles = StyleSheet.create({
     cardDoctor: { flex: 1, fontSize: 15, fontWeight: '700', color: '#222', marginRight: 8 },
     cardMetaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
     cardMetaText: { fontSize: 12, color: '#666', marginLeft: 5 },
-    cardActionsRow: { flexDirection: 'row', marginTop: 12, gap: 20 },
-    cardActionBtn: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-    cardActionText: { fontSize: 12, fontWeight: '600' },
 
     emptyWrap: { paddingVertical: 40, alignItems: 'center', backgroundColor: '#F7F7F7', borderRadius: 8 },
     emptyText: { fontSize: 14, color: '#666' },
@@ -350,24 +369,7 @@ const styles = StyleSheet.create({
     footerCount: { fontSize: 13, color: '#777' },
     pagerBtn: { padding: 6 },
     pagerBtnDisabled: { opacity: 0.3 },
-
-    fab: {
-        position: 'absolute',
-        right: 20,
-        bottom: 20,
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: colors.ICON_COLOR_PRIMARY,
-        alignItems: 'center',
-        justifyContent: 'center',
-        elevation: 6,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-    },
 });
 
-export default TodayComponent;
-export { TodayComponent };
+export default AllAppointmentComponent;
+export { AllAppointmentComponent };
