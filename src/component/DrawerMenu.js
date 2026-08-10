@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 
 
 const DrawerMenu = (props) => {
-    const { containerData = {}, onPress, iconData = {}, textData = {}, isSelected = false } = props;
+    const { containerData = {}, onPress, iconData = {}, textData = {}, isSelected = false, imageViewStyle={} } = props;
     const { backgroundType, containerBG, borderBG } = containerData;
     const { iconName, iconColor } = iconData;
     const { title, textColor } = textData;
@@ -35,11 +35,14 @@ const DrawerMenu = (props) => {
                 {title}
             </Text>
             {backgroundType == 3 && (
-                <Icon
-                    name={isSelected ? 'chevron-up' : 'chevron-down'}
-                    size={isTabletWidth ? 14 : 12}
-                    color={'#ABABAB'}
-                />
+                <View style={imageViewStyle}>
+                    {/* style={{ transform: [{ rotate: '0deg' }] }}*/ }
+                    <Icon
+                        name={isSelected ? 'chevron-up' : 'chevron-down'}
+                        size={isTabletWidth ? 14 : 12}
+                        color={'#ABABAB'}
+                    />
+                </View>
             )}
         </TouchableOpacity>
     );

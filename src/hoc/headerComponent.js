@@ -75,7 +75,7 @@ const ResponsiveHeader = ({ children, onPress, isBack }) => {
                         },
                     ]}
                 >
-                    Aton Biotech
+                    Konsyl Pharmaceuticals
                 </Text>
 
                 <View
@@ -115,7 +115,7 @@ const ResponsiveHeader = ({ children, onPress, isBack }) => {
 
 const styles = StyleSheet.create({
     shadowBox: {
-        backgroundColor: colors.ICON_COLOR_PRIMARY,
+        backgroundColor: colors.WHITE_COLOR,
         flexDirection: "row",
         alignItems: "center",
 
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
 
     title: {
         flex: 1,
-        color: colors.WHITE_COLOR,
+        color: 'black',
         fontWeight: "600",
         fontFamily: fonts.POPPINS_REGULAR,
     },
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         borderWidth: 1,
-        borderColor: colors.WHITE_COLOR,
+        borderColor: 'black',
         overflow: "hidden",
     },
 

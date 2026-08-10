@@ -73,8 +73,8 @@ export const useResponsiveLayout = (options = {}) => {
         boxHeight: boxHeightOpt = {
             tabletLandscape: '80%',
             tabletPortrait: '60%',
-            phoneLandscape: '92%',
-            phonePortrait: '85%',
+            phoneLandscape: '72%',
+            phonePortrait: '65%',
         },
         titleFontSize = 18,
         bodyFontSize = 14,

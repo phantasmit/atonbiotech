@@ -1,5 +1,9 @@
 import AddAppointmentModal from '../modal/AddAppointmentModal';
 import DoctorProfileModal from '../modal/DoctorProfileModal';
+import AddLabel from '../modal/AddLabel';
+import AssignProduct from '../modal/AssignProduct';
+import ConfirmModal from '../modal/ConfirmModal';
+import EditModal from '../modal/EditModal';
 //ErrorPopup
 const ModalStack = (Stack) => {
     return (
@@ -31,9 +35,34 @@ const ModalStack = (Stack) => {
                     presentation: 'transparentModal',
                     animation: 'fade',
                 }} />
-
-
-
+            <Stack.Screen
+                name="AddLabel"
+                component={AddLabel}
+                options={{
+                    presentation: 'transparentModal',
+                    animation: 'fade',
+                }} />
+            <Stack.Screen
+                name="AssignProduct"
+                component={AssignProduct}
+                options={{
+                    presentation: 'transparentModal',
+                    animation: 'fade',
+                }} />
+            <Stack.Screen
+                name="ConfirmModal"
+                component={ConfirmModal}
+                options={{
+                    presentation: 'transparentModal',
+                    animation: 'fade',
+                }} />
+            <Stack.Screen
+                name="EditModal"
+                component={EditModal}
+                options={{
+                    presentation: 'transparentModal',
+                    animation: 'fade',
+                }} />
         </Stack.Group>
     )
 }

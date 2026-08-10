@@ -12,7 +12,31 @@ const migrations = {
             ...state,
             stack_name: stacks.ON_BOARD_STACK
         };
-
+    },
+    3: (state) => {
+        return {
+            ...state,
+            doctorData: [],
+            hospitalData: []
+        };
+    },
+    4: (state) => {
+        return {
+            ...state,
+            hospitalData: [],
+            categoryData: [],
+            labelData: [],
+            loading: {
+                category: false,
+                hospitals: false,
+                lables: false,
+            },
+            error: {
+                category: null,
+                hospitals: null,
+                lables: null,
+            }
+        };
     },
 }
 

@@ -8,6 +8,7 @@ import {
     StyleSheet,
     Image,
     useWindowDimensions,
+    ActivityIndicator,
 } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Menu } from 'react-native-paper';
@@ -15,7 +16,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import colors from '../../assets/appColor/colors';
 import fonts from '../../assets/fonts/fonts';
 import ExpandableFab from '../../component/ExpandableFab';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCategories, fetchHospitals, fetchLabels, fetchAppointment } from '../addDoctor/hospitalThunks';
 // ---------- Mock data ----------
 const DOCTOR_NAMES = [
     'Dr. Sarah Mitchell', 'Dr. James Carter', 'Dr. Emily Chen',
@@ -46,7 +48,12 @@ const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
 
 // ---------- Component ----------
 const TodayComponent = () => {
+
     const navigation = useNavigation();
+    //
+    const dispatch = useDispatch();
+    const { categoryData, hospitalData, labelData, appointmentData, loading, error } = useSelector((state) => state.hospitalReducer)
+    //
     const { width } = useWindowDimensions();
     const isTableLayout = width >= 700; // tablet/iPad or landscape phone -> table, else cards
 
@@ -135,139 +142,158 @@ const TodayComponent = () => {
         </View>
     );
 
-    return (
-        <View style={{ flex: 1, backgroundColor: colors.WHITE_COLOR }}>
-            {/* Top app bar */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={openDrawer} hitSlop={{ top: 12, left: 12, right: 12, bottom: 12 }}>
-                    <Icon name="bars" size={20} color="#fff" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle} numberOfLines={1}>Aton Biotech</Text>
-                <TouchableOpacity onPress={() => { navigation.navigate('myProfile') }}>
-                    <Image
-                        source={{ uri: 'https://i.pravatar.cc/100?img=12' }}
-                        style={styles.avatar}
-                    />
-                </TouchableOpacity>
-            </View>
+    useEffect(() => {
+        Promise.allSettled([
+            dispatch(fetchCategories()),
+            dispatch(fetchHospitals()),
+            dispatch(fetchLabels()),
+            dispatch(fetchAppointment()),
+        ])
+    }, [])
 
-            <FlatList
-                data={pageData}
-                keyExtractor={(item) => item.id}
-                key={isTableLayout ? 'table' : 'cards'} // force re-mount layout cleanly when switching modes
-                contentContainerStyle={[
-                    styles.listContent,
-                    { paddingHorizontal: isTableLayout ? 20 : 12 },
-                ]}
-                ListHeaderComponent={
-                    <>
-                        <View style={[styles.subHeader, !isTableLayout && styles.subHeaderStacked]}>
-                            <Text style={styles.titleText}>
-                                Appointments: <Text style={styles.dateText}>{formatDate(today)}</Text>
-                            </Text>
-                            <View style={[styles.searchWrap, !isTableLayout && { width: '100%', marginTop: 10 }]}>
-                                <Icon name="search" size={14} color="#999" style={{ marginRight: 8 }} />
-                                <TextInput
-                                    placeholder="Search"
-                                    placeholderTextColor="#999"
-                                    value={search}
-                                    onChangeText={(t) => { setSearch(t); setPage(0); }}
-                                    style={styles.searchInput}
-                                />
+    const isLoading = loading.category || loading.hospitals || loading.lables || loading.appointment;
+    const isDataAvailable = (categoryData.length > 0) || (hospitalData.length > 0) || (labelData.length > 0) || (appointmentData.length > 0)
+
+    if (isLoading && !isDataAvailable)
+        return (
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+                <ActivityIndicator size={'large'} color={'#3562a6'} style={{ alignSelf: "center" }} />
+            </View>
+        );
+    else
+        return (
+            <View style={{ flex: 1, backgroundColor: colors.WHITE_COLOR }}>
+                {/* Top app bar */}
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={openDrawer} hitSlop={{ top: 12, left: 12, right: 12, bottom: 12 }}>
+                        <Icon name="bars" size={20} color="black" />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle} numberOfLines={1}>Konsyl Pharmaceuticals</Text>
+                    <TouchableOpacity onPress={() => { navigation.navigate('myProfile') }}>
+                        <Image
+                            source={{ uri: 'https://i.pravatar.cc/100?img=12' }}
+                            style={styles.avatar}
+                        />
+                    </TouchableOpacity>
+                </View>
+
+                <FlatList
+                    data={pageData}
+                    keyExtractor={(item) => item.id}
+                    key={isTableLayout ? 'table' : 'cards'} // force re-mount layout cleanly when switching modes
+                    contentContainerStyle={[
+                        styles.listContent,
+                        { paddingHorizontal: isTableLayout ? 20 : 12 },
+                    ]}
+                    ListHeaderComponent={
+                        <>
+                            <View style={[styles.subHeader, !isTableLayout && styles.subHeaderStacked]}>
+                                <Text style={styles.titleText}>
+                                    Appointments: <Text style={styles.dateText}>{formatDate(today)}</Text>
+                                </Text>
+                                <View style={[styles.searchWrap, !isTableLayout && { width: '100%', marginTop: 10 }]}>
+                                    <Icon name="search" size={14} color="#999" style={{ marginRight: 8 }} />
+                                    <TextInput
+                                        placeholder="Search"
+                                        placeholderTextColor="#999"
+                                        value={search}
+                                        onChangeText={(t) => { setSearch(t); setPage(0); }}
+                                        style={styles.searchInput}
+                                    />
+                                </View>
+                            </View>
+                            {isTableLayout && renderTableHeader()}
+                        </>
+                    }
+                    renderItem={isTableLayout ? renderTableRow : renderCard}
+                    ItemSeparatorComponent={() =>
+                        isTableLayout ? <View style={styles.rowDivider} /> : <View style={{ height: 10 }} />
+                    }
+                    ListEmptyComponent={
+                        <View style={styles.emptyWrap}>
+                            <Text style={styles.emptyText}>No Data Found!</Text>
+                        </View>
+                    }
+                    ListFooterComponent={
+                        <View style={[styles.footer, !isTableLayout && styles.footerStacked]}>
+                            <View style={styles.footerLeft}>
+                                <Text style={styles.footerLabel}>Items per page:</Text>
+                                <Menu
+                                    visible={menuVisible}
+                                    onDismiss={() => setMenuVisible(false)}
+                                    anchor={
+                                        <TouchableOpacity style={styles.perPageBtn} onPress={() => setMenuVisible(true)}>
+                                            <Text style={styles.perPageText}>{itemsPerPage}</Text>
+                                            <Icon name="caret-down" size={12} color="#555" style={{ marginLeft: 6 }} />
+                                        </TouchableOpacity>
+                                    }
+                                >
+                                    {ITEMS_PER_PAGE_OPTIONS.map((opt) => (
+                                        <Menu.Item
+                                            key={opt}
+                                            onPress={() => { setItemsPerPage(opt); setPage(0); setMenuVisible(false); }}
+                                            title={String(opt)}
+                                        />
+                                    ))}
+                                </Menu>
+                            </View>
+                            <View style={styles.footerRight}>
+                                <Text style={styles.footerCount}>
+                                    {filtered.length === 0
+                                        ? '0 of 0'
+                                        : `${start + 1}-${Math.min(filtered.length, start + itemsPerPage)} of ${filtered.length}`}
+                                </Text>
+                                <TouchableOpacity
+                                    onPress={goPrev}
+                                    disabled={clampedPage === 0}
+                                    style={[styles.pagerBtn, clampedPage === 0 && styles.pagerBtnDisabled]}
+                                >
+                                    <Icon name="chevron-left" size={14} color="#555" />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={goNext}
+                                    disabled={clampedPage >= totalPages - 1}
+                                    style={[styles.pagerBtn, clampedPage >= totalPages - 1 && styles.pagerBtnDisabled]}
+                                >
+                                    <Icon name="chevron-right" size={14} color="#555" />
+                                </TouchableOpacity>
                             </View>
                         </View>
-                        {isTableLayout && renderTableHeader()}
-                    </>
-                }
-                renderItem={isTableLayout ? renderTableRow : renderCard}
-                ItemSeparatorComponent={() =>
-                    isTableLayout ? <View style={styles.rowDivider} /> : <View style={{ height: 10 }} />
-                }
-                ListEmptyComponent={
-                    <View style={styles.emptyWrap}>
-                        <Text style={styles.emptyText}>No Data Found!</Text>
-                    </View>
-                }
-                ListFooterComponent={
-                    <View style={[styles.footer, !isTableLayout && styles.footerStacked]}>
-                        <View style={styles.footerLeft}>
-                            <Text style={styles.footerLabel}>Items per page:</Text>
-                            <Menu
-                                visible={menuVisible}
-                                onDismiss={() => setMenuVisible(false)}
-                                anchor={
-                                    <TouchableOpacity style={styles.perPageBtn} onPress={() => setMenuVisible(true)}>
-                                        <Text style={styles.perPageText}>{itemsPerPage}</Text>
-                                        <Icon name="caret-down" size={12} color="#555" style={{ marginLeft: 6 }} />
-                                    </TouchableOpacity>
-                                }
-                            >
-                                {ITEMS_PER_PAGE_OPTIONS.map((opt) => (
-                                    <Menu.Item
-                                        key={opt}
-                                        onPress={() => { setItemsPerPage(opt); setPage(0); setMenuVisible(false); }}
-                                        title={String(opt)}
-                                    />
-                                ))}
-                            </Menu>
-                        </View>
-                        <View style={styles.footerRight}>
-                            <Text style={styles.footerCount}>
-                                {filtered.length === 0
-                                    ? '0 of 0'
-                                    : `${start + 1}-${Math.min(filtered.length, start + itemsPerPage)} of ${filtered.length}`}
-                            </Text>
-                            <TouchableOpacity
-                                onPress={goPrev}
-                                disabled={clampedPage === 0}
-                                style={[styles.pagerBtn, clampedPage === 0 && styles.pagerBtnDisabled]}
-                            >
-                                <Icon name="chevron-left" size={14} color="#555" />
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={goNext}
-                                disabled={clampedPage >= totalPages - 1}
-                                style={[styles.pagerBtn, clampedPage >= totalPages - 1 && styles.pagerBtnDisabled]}
-                            >
-                                <Icon name="chevron-right" size={14} color="#555" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                }
-            />
+                    }
+                />
 
-            {/* <TouchableOpacity style={styles.fab} activeOpacity={0.85}>
+                {/* <TouchableOpacity style={styles.fab} activeOpacity={0.85}>
                 <Icon name="plus" size={22} color="#fff" />
             </TouchableOpacity> */}
-            <ExpandableFab
-                mainColor={colors.ICON_COLOR_PRIMARY}
-                actions={[
-                    { label: 'Add Appointment', icon: 'plus', color: '#D2434B', onPress: () => { navigation.navigate('AddAppointment') } },
-                    { label: 'Add Label', icon: 'plus', color: '#FCCE3B', onPress: () => { navigation.navigate('AddAppointment') } },
-                    { label: 'Add Doctor', icon: 'plus', color: '#55D88A', onPress: () => { navigation.navigate('addDoctor') } },
-                ]}
-            />
-        </View>
-    );
+                <ExpandableFab
+                    mainColor={colors.ICON_COLOR_PRIMARY}
+                    actions={[
+                        { label: 'Add Appointment', icon: 'plus', color: '#D2434B', onPress: () => { navigation.navigate('AddAppointment') } },
+                        { label: 'Add Label', icon: 'plus', color: '#FCCE3B', onPress: () => { navigation.navigate('AddLabel') } },
+                        { label: 'Add Hospital', icon: 'plus', color: '#55D88A', onPress: () => { navigation.navigate('addDoctor') } },
+                    ]}
+                />
+            </View>
+        );
 };
 
 const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.ICON_COLOR_PRIMARY,
+        backgroundColor: colors.WHITE_COLOR,
         paddingHorizontal: 16,
         paddingVertical: 14,
         gap: 16,
     },
     headerTitle: {
         flex: 1,
-        color: '#fff',
+        color: 'black',
         fontSize: 18,
         fontWeight: '700',
         fontFamily: fonts.POPPINS_REGULAR,
     },
-    avatar: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: '#fff' },
+    avatar: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: 'black' },
 
     listContent: { paddingBottom: 100, paddingTop: 16 },
 
