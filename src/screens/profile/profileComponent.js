@@ -16,7 +16,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import colors from '../../assets/appColor/colors';
 import fonts from '../../assets/fonts/fonts';
 import { background } from '../../utils/images';
-
+import LinearGradient from 'react-native-linear-gradient';
 // --- Responsive helpers -----------------------------------------------
 const BASE_WIDTH = 375;
 
@@ -91,7 +91,7 @@ const MyProfileScreen = () => {
     return (
         <View style={styles.screen}>
             {/* Header bar */}
-            <View style={[styles.headerBar, { paddingTop: Math.max(12, insets.top) }]}>
+            <View style={[styles.headerBar, { paddingTop: Math.max(12, insets.top), backgroundColor: "#f3f6fb" }]}>
                 <TouchableOpacity
                     onPress={() => navigation.goBack()}
                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -109,68 +109,68 @@ const MyProfileScreen = () => {
                 resizeMode="repeat"
                 style={styles.bgBody}
             > */}
-                <ScrollView
-                    contentContainerStyle={[
-                        styles.scrollContent,
-                        { paddingBottom: Math.max(24, insets.bottom) },
-                    ]}
-                    showsVerticalScrollIndicator={false}
-                >
-                    <View style={[styles.card, { width: cardWidth }]}>
-                        {/* Edit icon */}
-                        <TouchableOpacity
-                            style={styles.editBtn}
-                            onPress={handleEdit}
-                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        >
-                            <Icon name="pencil-square-o" size={18} color="#fff" />
-                        </TouchableOpacity>
+            <ScrollView
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    { paddingBottom: Math.max(24, insets.bottom) },
+                ]}
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={[styles.card, { width: cardWidth }]}>
+                    {/* Edit icon */}
+                    <TouchableOpacity
+                        style={styles.editBtn}
+                        onPress={handleEdit}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                        <Icon name="pencil-square-o" size={18} color="#fff" />
+                    </TouchableOpacity>
 
-                        {/* Avatar overlaps header/body boundary */}
-                        <View style={[styles.avatarWrap, { width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }]}>
-                            {avatarUrl ? (
-                                <Image
-                                    source={{ uri: avatarUrl }}
-                                    style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }}
-                                />
-                            ) : (
-                                <Icon name="user" size={avatarSize * 0.5} color="#fff" />
-                            )}
-                        </View>
-
-                        <Text style={[styles.name, { fontSize: fontScale(24) }]} numberOfLines={1}>
-                            {name}
-                        </Text>
-                        <Text style={[styles.email, { fontSize: fontScale(15) }]} numberOfLines={1}>
-                            {email}
-                        </Text>
-
-                        {/* Info rows */}
-                        <View style={styles.infoList}>
-                            <InfoCard
-                                icon="user-o"
-                                iconColor={colors.ICON_COLOR_PRIMARY || '#3E8E7E'}
-                                label="Username"
-                                value={username}
-                                fontScale={fontScale}
+                    {/* Avatar overlaps header/body boundary */}
+                    <View style={[styles.avatarWrap, { width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }]}>
+                        {avatarUrl ? (
+                            <Image
+                                source={{ uri: avatarUrl }}
+                                style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }}
                             />
-                            <InfoCard
-                                icon="phone"
-                                iconColor={colors.ICON_COLOR_PRIMARY || '#3E8E7E'}
-                                label="Mobile Number"
-                                value={mobileNumber}
-                                fontScale={fontScale}
-                            />
-                            <InfoCard
-                                icon="home"
-                                iconColor="#E8A33D"
-                                label="Address"
-                                value={address}
-                                fontScale={fontScale}
-                            />
-                        </View>
+                        ) : (
+                            <Icon name="user" size={avatarSize * 0.5} color="#fff" />
+                        )}
                     </View>
-                </ScrollView>
+
+                    <Text style={[styles.name, { fontSize: fontScale(24) }]} numberOfLines={1}>
+                        {name}
+                    </Text>
+                    <Text style={[styles.email, { fontSize: fontScale(15) }]} numberOfLines={1}>
+                        {email}
+                    </Text>
+
+                    {/* Info rows */}
+                    <View style={styles.infoList}>
+                        <InfoCard
+                            icon="user-o"
+                            iconColor={colors.ICON_COLOR_PRIMARY || '#3E8E7E'}
+                            label="Username"
+                            value={username}
+                            fontScale={fontScale}
+                        />
+                        <InfoCard
+                            icon="phone"
+                            iconColor={colors.ICON_COLOR_PRIMARY || '#3E8E7E'}
+                            label="Mobile Number"
+                            value={mobileNumber}
+                            fontScale={fontScale}
+                        />
+                        <InfoCard
+                            icon="home"
+                            iconColor="#E8A33D"
+                            label="Address"
+                            value={address}
+                            fontScale={fontScale}
+                        />
+                    </View>
+                </View>
+            </ScrollView>
             {/* </ImageBackground> */}
         </View>
     );

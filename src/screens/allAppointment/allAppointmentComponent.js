@@ -166,7 +166,7 @@ const AllAppointmentComponent = () => {
                 <TouchableOpacity onPress={openDrawer} hitSlop={{ top: 12, left: 12, right: 12, bottom: 12 }}>
                     <Icon name="bars" size={20} color="#fff" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle} numberOfLines={1}>Aton Biotech</Text>
+                <Text style={styles.headerTitle} numberOfLines={1}>Konsyl Pharmaceuticals</Text>
                 <Image source={{ uri: 'https://i.pravatar.cc/100?img=12' }} style={styles.avatar} />
             </View>
 

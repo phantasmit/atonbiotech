@@ -10,7 +10,6 @@ const navigationSlice = createSlice({
     initialState,
     reducers: {
         changeStack(state, action) {
-            alert(action.payload)
             state.stack_name = action.payload;
         }
     }

@@ -1,5 +1,5 @@
 export default {
-    ICON_COLOR_PRIMARY: "#127f66",
+    ICON_COLOR_PRIMARY: "#6b9fe4",
     ICON_COLOR_PRIMARY_SHADE: "#127f66",
     ICON_COLOR_PRIMARY_TINT: "#127f66",
     WHITE_COLOR: "#ffffff",

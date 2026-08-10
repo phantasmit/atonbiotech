@@ -2,7 +2,8 @@ import { createSlice } from '@reduxjs/toolkit';
 
 
 const initialState = {
-    userid: ''
+    userid: '',
+    userData: {}
 };
 
 const authSlice = createSlice({
@@ -10,8 +11,8 @@ const authSlice = createSlice({
     initialState,
     reducers: {
         saveUser(state, action) {
-            console.log(JSON.stringify(action.payload));
-            state.userid = 1;
+            state.userid = action.payload.id;
+            state.userData = action.payload
         }
     }
 });

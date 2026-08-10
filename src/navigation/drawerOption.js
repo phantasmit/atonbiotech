@@ -200,10 +200,10 @@
 // export { DrawerOption };
 
 import React, { useState } from "react";
-import { View, TouchableOpacity, Image, Text, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
-import { useDispatch } from 'react-redux';
+import { View, TouchableOpacity, Image, Text, ScrollView, StyleSheet, useWindowDimensions, Share, Linking } from "react-native";
+import { useDispatch, useSelector } from 'react-redux';
 import colors from "../assets/appColor/colors";
-import { logo } from "../utils/images";
+import { logo, icon } from "../utils/images";
 import DrawerMenu from '../component/DrawerMenu';
 import fonts from "../assets/fonts/fonts";
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -211,7 +211,7 @@ import { changeStack } from "./navigationSlice";
 import stacks from "./stackEnum";
 
 const NavigationRowData = (props) => {
-    const { data = [], onItemPress = () => { }, isTabletWidth } = props;
+    const { data = [], onItemPress = () => { }, isTabletWidth, indexPos } = props;
     return (
         <>
             {data.map((item, index) => (
@@ -228,7 +228,7 @@ const NavigationRowData = (props) => {
                         ]}
                         numberOfLines={1}
                     >
-                        {item || `Item ${index + 1}`}
+                        {indexPos === 1 ? item.doctor_name : item.name}
                     </Text>
                     <Icon
                         name={'chevron-right'}
@@ -261,11 +261,16 @@ const DrawerOption = (props) => {
         dispatch(changeStack(stacks.ON_BOARD_STACK));
     };
 
+    //
+    const { categoryData, labelData, hospitalData } = useSelector((state) => state.hospitalReducer);
+    const tempCategory = JSON.parse(JSON.stringify(categoryData))
+    tempCategory.unshift({ id: -1, name: "All Product" });
+    //
     return (
         <View style={{ flex: 1, backgroundColor: colors.WHITE_COLOR }}>
-            <View style={[styles.header, { padding: isTabletWidth ? 24 : 20 }]}>
+            <View style={[styles.header, { padding: isTabletWidth ? 24 : 20, backgroundColor: "white" }]}>
                 <Image
-                    source={logo}
+                    source={icon}
                     resizeMode="contain"
                     style={{
                         width: '100%',
@@ -292,13 +297,25 @@ const DrawerOption = (props) => {
 
                 <DrawerMenu
                     isSelected={selectedIndex === 0}
+                    //onPress={() => { navigation?.navigate('addCategory'); }}
                     onPress={() => toggleIndex(0)}
                     containerData={{ backgroundType: 3, containerBG: '#E9E9E9', borderBG: '#FE1919' }}
                     iconData={{ iconName: 'list-ul', iconColor: '#525252' }}
                     textData={{ title: 'Categories', textColor: '#525252' }}
                 />
                 {selectedIndex === 0 && (
-                    <NavigationRowData data={['Category A', 'Category B']} isTabletWidth={isTabletWidth} onItemPress={() => { navigation.navigate('medicineList') }} />
+                    <NavigationRowData
+                        data={tempCategory}
+                        indexPos={selectedIndex}
+                        isTabletWidth={isTabletWidth}
+                        onItemPress={(item, index) => {
+                            if (item.id === -1) {
+                                navigation.navigate('product', item)
+                            } else {
+                                navigation.navigate('product', item)
+                            }
+                        }}
+                    />
                 )}
 
                 <DrawerMenu
@@ -309,11 +326,19 @@ const DrawerOption = (props) => {
                     textData={{ title: 'Doctor List', textColor: '#525252' }}
                 />
                 {selectedIndex === 1 && (
-                    <NavigationRowData data={['Doctor A', 'Doctor B', 'Doctor C']} isTabletWidth={isTabletWidth} onItemPress={() => { navigation.navigate('medicineList') }} />
+                    <NavigationRowData
+                        data={hospitalData}
+                        indexPos={selectedIndex}
+                        isTabletWidth={isTabletWidth}
+                        onItemPress={(item, index) => {
+                            navigation.navigate('assignProductList', { ...item, indexPos: 1 })
+                        }}
+                    />
                 )}
 
                 <DrawerMenu
                     isSelected={selectedIndex === 2}
+                    //onPress={() => { alert('test') }}
                     onPress={() => toggleIndex(2)}
                     containerData={{ backgroundType: 3, containerBG: '#E9E9E9', borderBG: '#FCCE3B' }}
                     iconData={{ iconName: 'bookmark-o', iconColor: '#525252' }}
@@ -321,41 +346,100 @@ const DrawerOption = (props) => {
                 />
                 {selectedIndex === 2 && (
                     <NavigationRowData
-                        data={['Label A', 'Label B', 'Label C', 'Label D']}
+                        data={labelData}
+                        indexPos={selectedIndex}
                         isTabletWidth={isTabletWidth}
+                        onItemPress={(item, index) => {
+                            navigation.navigate('assignProductList', { ...item, indexPos: 2 })
+                        }}
                     />
                 )}
 
+                <DrawerMenu
+                    isSelected={selectedIndex === 3}
+                    onPress={() => { navigation?.navigate('favorite') }}
+                    imageViewStyle={{ transform: [{ rotate: '270deg' }] }}
+                    //onPress={() => toggleIndex(0)}
+                    containerData={{ backgroundType: 3, containerBG: '#E9E9E9', borderBG: '#FE1919' }}
+                    iconData={{ iconName: 'list-ul', iconColor: '#525252' }}
+                    textData={{ title: 'Favorite', textColor: '#525252' }}
+                />
                 <View style={styles.divider} />
 
                 <Text style={styles.sectionLabel}>Other Options</Text>
 
                 <DrawerMenu
-                    onPress={() => { }}
+                    onPress={() => { navigation?.navigate('offers') }}
+                    containerData={{ backgroundType: 1 }}
+                    iconData={{ iconName: 'info-circle', iconColor: '#55D88A' }}
+                    textData={{ title: 'Offers', textColor: '#525252' }}
+                />
+                <DrawerMenu
+                    onPress={() => { navigation?.navigate('webPage', { type: 'aboutus', title: 'About Us' }) }}
                     containerData={{ backgroundType: 1 }}
                     iconData={{ iconName: 'info-circle', iconColor: '#55D88A' }}
                     textData={{ title: 'About Us', textColor: '#525252' }}
                 />
                 <DrawerMenu
-                    onPress={() => { }}
+                    onPress={() => { navigation?.navigate('contactUs') }}
                     containerData={{ backgroundType: 1 }}
                     iconData={{ iconName: 'phone', iconColor: '#3DC2FF' }}
                     textData={{ title: 'Contact Us', textColor: '#525252' }}
                 />
                 <DrawerMenu
-                    onPress={() => { }}
+                    onPress={() => { navigation?.navigate('webPage', { type: 'privacy_policy', title: 'Privacy Policy' }) }}
                     containerData={{ backgroundType: 1 }}
                     iconData={{ iconName: 'book', iconColor: '#5A67FF' }}
                     textData={{ title: 'Privacy Policy', textColor: '#525252' }}
                 />
                 <DrawerMenu
-                    onPress={() => { }}
+                    onPress={() => { navigation?.navigate('webPage', { type: 'term_condition', title: 'Term Condition' }) }}
+                    containerData={{ backgroundType: 1 }}
+                    iconData={{ iconName: 'book', iconColor: '#5A67FF' }}
+                    textData={{ title: 'Terms & Condition', textColor: '#525252' }}
+                />
+                <DrawerMenu
+                    onPress={async () => {
+                        const iosAppId = '6744658682';
+                        const androidPackageName = 'com.yourapp.package';
+
+                        const url = Platform.select({
+                            ios: `https://apps.apple.com/app/id/${iosAppId}`,
+                            android: `https://play.google.com/store/apps/details?id=${androidPackageName}`,
+                        });
+                        try {
+                            const result = await Share.share({
+                                message: url
+                            });
+                            if (result.action === Share.sharedAction) {
+                                if (result.activityType) {
+                                    // shared with activity type of result.activityType
+                                } else {
+                                    // shared
+                                }
+                            } else if (result.action === Share.dismissedAction) {
+                                // dismissed
+                            }
+                        } catch (error) {
+                            alert(error.message);
+                        }
+                    }}
                     containerData={{ backgroundType: 1 }}
                     iconData={{ iconName: 'share-alt', iconColor: '#A2EBBF' }}
                     textData={{ title: 'Share this app', textColor: '#525252' }}
                 />
                 <DrawerMenu
-                    onPress={() => { }}
+                    onPress={() => {
+                        const iosAppId = '6744658682';
+                        const androidPackageName = 'com.yourapp.package';
+
+                        const url = Platform.select({
+                            ios: `https://apps.apple.com/app/id/${iosAppId}`,
+                            android: `https://play.google.com/store/apps/details?id=${androidPackageName}`,
+                        });
+
+                        Linking.openURL(url).catch((err) => console.error('An error occurred', err));
+                    }}
                     containerData={{ backgroundType: 1 }}
                     iconData={{ iconName: 'star', iconColor: '#FFCC29' }}
                     textData={{ title: 'Rate Us', textColor: '#525252' }}
@@ -366,6 +450,7 @@ const DrawerOption = (props) => {
                     iconData={{ iconName: 'power-off', iconColor: '#F49DA9' }}
                     textData={{ title: 'Logout', textColor: '#525252' }}
                 />
+
             </ScrollView>
         </View>
     );

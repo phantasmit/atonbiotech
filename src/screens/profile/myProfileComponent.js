@@ -17,6 +17,9 @@ import colors from '../../assets/appColor/colors';
 import fonts from '../../assets/fonts/fonts';
 import { background } from '../../utils/images';
 import LinearGradient from 'react-native-linear-gradient';
+import { useSelector } from 'react-redux';
+import { IMAGE_BASE_URL } from '../../services/api-end-points';
+import { Button } from 'react-native-paper';
 // --- Responsive helpers -----------------------------------------------
 const BASE_WIDTH = 375;
 
@@ -65,15 +68,17 @@ const MyProfileComponent = () => {
     const { width, height } = useWindowDimensions();
     const insets = useSafeAreaInsets();
 
-    const { profile = {} } = route.params ?? {};
+    const userInfo = useSelector((state) => state.auth.userData);
     const {
-        name = '',
+        first_name = '',
+        last_name = "",
         email = '',
         avatarUrl = null,
-        username = '',
-        mobileNumber = '',
-        address = '',
-    } = profile;
+        company_name = '',
+        mobile_number = '',
+        address_line1 = '',
+        profile_picture = ""
+    } = userInfo;
 
     const breakpoint = getBreakpoint(width);
     const fontScale = (size) => scale(width, size);
@@ -85,21 +90,21 @@ const MyProfileComponent = () => {
     })();
 
     const avatarSize = breakpoint === 'phone' ? 96 : 120;
-    
-    const handleEdit = () => navigation.navigate('updateProfile', { profile });
+
+    const handleEdit = () => navigation.navigate('updateProfile');
 
     return (
         <View style={styles.screen}>
             {/* Header bar */}
-            <View style={[styles.headerBar, { paddingTop: Math.max(12, insets.top) }]}>
+            <View style={[styles.headerBar, { paddingTop: Math.max(12, insets.top), backgroundColor: "#f3f6fb" }]}>
                 <TouchableOpacity
                     onPress={() => navigation.goBack()}
                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     style={styles.backBtn}
                 >
-                    <Icon name="arrow-left" size={20} color="#fff" />
+                    <Icon name="arrow-left" size={16} color="black" />
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { fontSize: fontScale(20) }]}>My Profile</Text>
+                <Text style={[styles.headerTitle, { fontSize: fontScale(18) }]}>My Profile</Text>
                 <View style={{ width: 32 }} />
             </View>
 
@@ -118,7 +123,7 @@ const MyProfileComponent = () => {
                 >
                     <View style={[styles.cardShadow, { width: cardWidth }]}>
                         <LinearGradient
-                            colors={['#659999', '#23dab1']}
+                            colors={['#4a7ec7', '#6b9fe4']}
                             start={{ x: 0.5, y: 1 }}
                             end={{ x: 0.5, y: 0 }}
                             style={styles.card}
@@ -134,9 +139,9 @@ const MyProfileComponent = () => {
 
                             {/* Avatar */}
                             <View style={[styles.avatarWrap, { width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }]}>
-                                {avatarUrl ? (
+                                {profile_picture ? (
                                     <Image
-                                        source={{ uri: avatarUrl }}
+                                        source={{ uri: `${IMAGE_BASE_URL}/${profile_picture}` }}
                                         style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }}
                                     />
                                 ) : (
@@ -145,10 +150,10 @@ const MyProfileComponent = () => {
                             </View>
 
                             <Text style={[styles.name, { fontSize: fontScale(24) }]} numberOfLines={1}>
-                                {`name`}
+                                {company_name}
                             </Text>
                             <Text style={[styles.email, { fontSize: fontScale(15) }]} numberOfLines={1}>
-                                {`email`}
+                                {email}
                             </Text>
 
                             {/* Info rows */}
@@ -157,26 +162,43 @@ const MyProfileComponent = () => {
                                     icon="user-o"
                                     iconColor={colors.ICON_COLOR_PRIMARY || '#3E8E7E'}
                                     label="Username"
-                                    value={`username`}
+                                    value={first_name + " " + last_name}
                                     fontScale={fontScale}
                                 />
                                 <InfoCard
                                     icon="phone"
                                     iconColor={colors.ICON_COLOR_PRIMARY || '#3E8E7E'}
                                     label="Mobile Number"
-                                    value={`mobileNumber`}
+                                    value={mobile_number}
                                     fontScale={fontScale}
                                 />
                                 <InfoCard
                                     icon="home"
                                     iconColor="#E8A33D"
                                     label="Address"
-                                    value={`address`}
+                                    value={address_line1}
                                     fontScale={fontScale}
                                 />
                             </View>
                         </LinearGradient>
                     </View>
+                    <LinearGradient
+                        colors={['#4a7ec7', '#6b9fe4']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{ borderRadius: 10, paddingVertical: 8, width: "80%", marginTop: 30 }}
+                    >
+                        <Button
+                            mode="contained"
+                            onPress={() => { 
+                                navigation.navigate('updatePassword')
+                            }}
+                            style={styles.loginButton}
+                            contentStyle={styles.loginButtonContent}
+                        >
+                            Change Password
+                        </Button>
+                    </LinearGradient>
                 </ScrollView>
             </ImageBackground>
         </View>
@@ -193,7 +215,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.ICON_COLOR_PRIMARY || '#1E8E6E',
     },
     backBtn: { padding: 8 },
-    headerTitle: { flex: 1, color: '#fff', fontWeight: '700', fontFamily: fonts.POPPINS_REGULAR, marginLeft: 4 },
+    headerTitle: { flex: 1, color: 'black', fontWeight: '500', fontFamily: fonts.POPPINS_REGULAR, marginLeft: 4 },
 
     bgBody: { flex: 1 },
     scrollContent: {
@@ -265,6 +287,15 @@ const styles = StyleSheet.create({
     infoTextWrap: { flex: 1 },
     infoLabel: { color: '#999', marginBottom: 2 },
     infoValue: { color: '#1a1a1a', fontWeight: '600' },
+    loginButton: {
+        width: '100%',
+        borderRadius: 10,
+        //marginTop: 8,
+        backgroundColor: 'transparent'
+    },
+    loginButtonContent: {
+        //paddingBottom:10
+    },
 });
 
 export default MyProfileComponent;
