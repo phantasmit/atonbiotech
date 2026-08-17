@@ -270,6 +270,8 @@ import { request } from '../../services/services';
 import { IMAGE_BASE_URL, UPDATE_PROFILE_API } from '../../services/api-end-points';
 import { HTTP_METHODS } from '../../services/api-constants';
 import { saveUser } from '../login/authSlice';
+import LinearGradient from 'react-native-linear-gradient';
+import { Button } from 'react-native-paper';
 
 const FIELD_CONFIG = [
     { key: 'firstName', label: 'First Name', keyboardType: 'default' },
@@ -323,6 +325,7 @@ const UpdateProfileComponent = () => {
 
     const [photo, setPhoto] = useState(avatarUrl ? { uri: avatarUrl } : null);
     const [uploading, setUploading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const setField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
@@ -330,12 +333,20 @@ const UpdateProfileComponent = () => {
         // TODO: wire to real API / redux action
         // form fields + photo?.uri (or photo?.base64) can be sent together, e.g. via FormData
         //alert(JSON.stringify(form) + " >> " + photo?.uri)
+        setIsSubmitting(true);
         console.log('Updating profile:', form, photo?.uri);
         const formData = new FormData();
 
         formData.append('first_name', form.firstName);
-        formData.append('last_name', form.lastName);
+        formData.append('state', form.lastName);
         formData.append('mobile_number', form.mobileNumber);
+        //
+        formData.append('city', form.city);
+        formData.append('state', form.state);
+        formData.append('address_line1', form.address_line1);
+        formData.append('address_line2', form.address_line2);
+        formData.append('zip_code', form.zip_code);
+        //
 
         if (photo?.uri) {
             formData.append('profile_picture', {
@@ -345,9 +356,18 @@ const UpdateProfileComponent = () => {
             });
         }
 
-        const result = await request(UPDATE_PROFILE_API(), HTTP_METHODS.MULTIPART, formData)
-        //alert(JSON.stringify(result.response.data.data))
-        dispatch(saveUser(result.response.data.data));
+
+        try {
+            const result = await request(UPDATE_PROFILE_API(), HTTP_METHODS.MULTIPART, formData)
+            alert('Profile Update Successfully!')
+            dispatch(saveUser(result.response.data.data));
+            setIsSubmitting(false);
+
+        } catch (e) {
+            console.log('Login failed status:', e?.response?.status);
+            console.log('Login failed body:', e?.response?.data?.message);
+            alert(e?.response?.data?.message)
+        }
     };
 
     // ---- Permissions ----
@@ -508,7 +528,7 @@ const UpdateProfileComponent = () => {
                         >
                             {photo?.uri || profile_picture ? (
                                 <Image
-                                    source={{ uri: profile_picture ? `${IMAGE_BASE_URL}/${profile_picture}` : photo.uri }}
+                                    source={{ uri: photo?.uri ? photo.uri : `${IMAGE_BASE_URL}/${profile_picture}` }}
                                     style={{
                                         width: avatarSize,
                                         height: avatarSize,
@@ -551,7 +571,7 @@ const UpdateProfileComponent = () => {
                             </View>
                         ))}
 
-                    <View style={[styles.submitRow, !isWideLayout && styles.submitRowStacked]}>
+                    {/* <View style={[styles.submitRow, !isWideLayout && styles.submitRowStacked]}>
                         <TouchableOpacity
                             style={[styles.updateBtn, !isWideLayout && { width: '100%' }]}
                             onPress={handleUpdate}
@@ -559,7 +579,23 @@ const UpdateProfileComponent = () => {
                         >
                             <Text style={styles.updateBtnText}>UPDATE NOW</Text>
                         </TouchableOpacity>
-                    </View>
+                    </View> */}
+                    <LinearGradient
+                        colors={['#1a73e8', '#3562a6']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{ borderRadius: 10, paddingVertical: 8 }}
+                    >
+                        <Button
+                            mode="contained"
+                            onPress={handleUpdate}
+                            loading={isSubmitting}
+                            style={styles.loginButton}
+                            contentStyle={styles.loginButtonContent}
+                        >
+                            UPDATE NOW
+                        </Button>
+                    </LinearGradient>
                 </ScrollView>
             </KeyboardAvoidingView>
         </View>
@@ -690,6 +726,13 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '700',
         letterSpacing: 0.5,
+    },
+    loginButton: {
+        width: '100%',
+        borderRadius: 10,
+        backgroundColor: 'transparent'
+    },
+    loginButtonContent: {
     },
 });
 

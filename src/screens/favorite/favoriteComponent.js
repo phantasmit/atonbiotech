@@ -122,7 +122,7 @@ const FavoriteComponent = () => {
     //
     const toggleFavorite = useCallback(async (item) => {
         setAllItems((prev) => prev.filter((p) => p?.product.id !== item?.product.id));
-        
+
         try {
             await request(
                 REMOVE_FAVORITE_API(item?.product.id),
@@ -133,7 +133,7 @@ const FavoriteComponent = () => {
             // revert on failure
             alert(err?.response?.data?.message || 'Could not update favorite');
         } finally {
-            
+
         }
     }, []);
     //
@@ -205,13 +205,13 @@ const FavoriteComponent = () => {
         //const item = items.product;
         const { name, thumb, packaging, ptr, mrp, id: itemId } = item.product;
         const isFavorite = true;
-        
+
 
         const isSelected = !!selectedIds[item.id];
         return (
             <TouchableOpacity
                 activeOpacity={selectionMode ? 0.7 : 1}
-                onPress={() => selectionMode ? toggleSelect(item.id) : navigation.navigate('productDetail', item)}
+                onPress={() => { navigation.navigate('productDetail', item.product) }}
                 style={styles.card}
             >
                 {selectionMode && (
@@ -259,11 +259,11 @@ const FavoriteComponent = () => {
         const { name, thumb, packaging, ptr, mrp, id: itemId } = item.product;
         const isSelected = !!selectedIds[itemId];
         const isFavorite = true;
-        
+
         return (
             <TouchableOpacity
                 activeOpacity={selectionMode ? 0.7 : 1}
-                onPress={() => selectionMode && toggleSelect(itemId)}
+                onPress={() => { navigation.navigate('productDetail', item.product) }}
                 style={styles.gridCard}
             >
                 <View style={styles.gridImageWrap}>

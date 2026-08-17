@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
  *   onDelete={() => {}}
  * />
  */
-const AppointmentActionIcons = ({ onEdit, onClose, onDelete, disabled = false }) => {
+const AppointmentActionIcons = ({ onEdit, onClose, onDelete, disabled = false, isDeleteDisable = false, isEditDisable = false }) => {
     const navigation = useNavigation();
     const { width } = useWindowDimensions();
     const isTabletWidth = width >= 600;
@@ -23,32 +23,37 @@ const AppointmentActionIcons = ({ onEdit, onClose, onDelete, disabled = false })
 
     return (
         <View style={styles.row}>
-            <TouchableOpacity
-                style={[styles.circle, { width: circleSize, height: circleSize, borderRadius: circleSize / 2 }]}
-                onPress={onEdit}
-                disabled={disabled}
-                activeOpacity={0.7}
-            >
-                <Icon name="pencil-square-o" size={iconSize} color="#268872" />
-            </TouchableOpacity>
+            {!isEditDisable &&
+                <TouchableOpacity
+                    style={[styles.circle, { width: circleSize, height: circleSize, borderRadius: circleSize / 2 }]}
+                    onPress={onEdit}
+                    disabled={disabled}
+                    activeOpacity={0.7}
+                >
+                    <Icon name="pencil-square-o" size={iconSize} color="#268872" />
+                </TouchableOpacity>}
 
-            <TouchableOpacity
-                style={[styles.circle, { width: circleSize, height: circleSize, borderRadius: circleSize / 2 }]}
-                onPress={onClose}
-                disabled={disabled}
-                activeOpacity={0.7}
-            >
-                <Icon name="ban" size={iconSize} color="#666" />
-            </TouchableOpacity>
+            {!isDeleteDisable &&
+                <TouchableOpacity
+                    style={[styles.circle, { width: circleSize, height: circleSize, borderRadius: circleSize / 2 }]}
+                    onPress={onClose}
+                    disabled={disabled}
+                    activeOpacity={0.7}
+                >
+                    <Icon name="ban" size={iconSize} color="#666" />
+                </TouchableOpacity>}
+            {/* {
+                !isDeleteDisable &&
+                <TouchableOpacity
+                    style={[styles.circle, { width: circleSize, height: circleSize, borderRadius: circleSize / 2 }]}
+                    onPress={onDelete}
+                    disabled={disabled}
+                    activeOpacity={0.7}
+                >
+                    <Icon name="trash-o" size={iconSize} color="#D2434B" />
+                </TouchableOpacity>
+            } */}
 
-            <TouchableOpacity
-                style={[styles.circle, { width: circleSize, height: circleSize, borderRadius: circleSize / 2 }]}
-                onPress={onDelete}
-                disabled={disabled}
-                activeOpacity={0.7}
-            >
-                <Icon name="trash-o" size={iconSize} color="#D2434B" />
-            </TouchableOpacity>
         </View>
     );
 };

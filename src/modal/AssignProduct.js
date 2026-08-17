@@ -288,8 +288,7 @@ import {
     Platform,
     Pressable,
     FlatList,
-    ActivityIndicator,
-    Clipboard,
+    ActivityIndicator
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -341,7 +340,6 @@ const AssignProduct = ({ navigation, route }) => {
     // Reset any previous selection each time the modal opens.
     useEffect(() => {
         setSelectedId(null);
-        //Clipboard.setString(JSON.stringify(hospitalData))
     }, []);
 
     const handleSelect = (id) => {

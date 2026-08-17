@@ -59,6 +59,7 @@ const ProductComponent = () => {
 
     const [allItems, setAllItems] = useState([]);
     const [initialLoading, setInitialLoading] = useState(true);
+    const [assignLoading, setAssignLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState(null);
@@ -258,7 +259,7 @@ const ProductComponent = () => {
             onSubmit: async (payload) => {
                 //console.log('Selected labels JSON:', payload);
                 const selectedId = selectedProducts.map(({ id }) => id);
-
+                setAssignLoading(true)
                 //alert(JSON.stringify(payload.id) + " >><<  " + [selectedId] + " " + optionId)
                 try {
                     if (optionId == 0) {
@@ -268,6 +269,7 @@ const ProductComponent = () => {
                         await request(ADD_PRODUCT_TO_HOSPITAL_API(payload.id), HTTP_METHODS.POST, JSON.stringify({ "product_ids": selectedId }))
                     }
                     alert('Assign Successfully!')
+                    setAssignLoading(false)
                 } catch (e) {
                     alert(e?.response?.data?.message)
                 }
@@ -520,6 +522,12 @@ const ProductComponent = () => {
                     }
                 />
             )}
+            {
+                assignLoading &&
+                <View style={{ position: "absolute", flex: 1, backgroundColor: '#89000000', width: "100%", height: "100%", alignItems: "center", justifyContent: "center" }}>
+                    <ActivityIndicator size="large" color="#3562a6" />
+                </View>
+            }
 
             {/* Bottom action bar shown only during selection mode */}
             {selectionMode && (

@@ -9,21 +9,22 @@ import {
     KeyboardAvoidingView,
     Platform,
     Pressable,
-    TextInput,
+    FlatList,
     ScrollView,
+    TextInput,
+    Clipboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import colors from '../assets/appColor/colors';
 import fonts from '../assets/fonts/fonts';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { CANCEL_APPOINTMENT_API, CREATE_APPOINTMENT_API, RE_SCHEDULE_APPOINTMENT_API } from '../services/api-end-points';
 import { request } from '../services/services';
-import { CREATE_LABEL_API } from '../services/api-end-points';
 import { HTTP_METHODS } from '../services/api-constants';
-import { dispatch } from '../navigation/RootNavigation';
-import { useDispatch } from 'react-redux';
-import { fetchLabels } from '../screens/addDoctor/hospitalThunks';
-
+import { fetchAppointment } from '../screens/addDoctor/hospitalThunks';
 
 // --- Responsive helpers -----------------------------------------------
 // Base reference width = 375 (iPhone SE / standard small phone)
@@ -42,11 +43,15 @@ const scale = (width, size) => {
     const clamped = Math.min(Math.max(factor, 0.9), 1.25);
     return Math.round(size * clamped);
 };
-// ------------------------------------------------------------------------
 
-const AddLabel = ({ visible, onClose, onSubmit }) => {
+const CancelReason = ({ route }) => {
+    //
     const navigation = useNavigation();
     const dispatch = useDispatch()
+    //
+    const { doctor_name, appointment_at, id, reschedule_reason } = route?.params;
+    const [labelDiscription, setLabelDiscription] = useState("");
+    //
     const { width, height } = useWindowDimensions();
     const insets = useSafeAreaInsets();
 
@@ -54,44 +59,47 @@ const AddLabel = ({ visible, onClose, onSubmit }) => {
     const isTabletWidth = breakpoint !== 'phone';
 
 
-    const [labelName, setLabelName] = useState('')
-    const [labelDiscription, setLabelDiscription] = useState('')
-    const [isDisable, setIsDisable] = useState(false)
-
     const resetForm = () => {
-        setLabelName('')
         setLabelDiscription('')
     };
 
     const handleClose = () => {
         resetForm();
-        onClose ? onClose() : navigation.goBack();
+        navigation.goBack();
     };
+
 
     const handleDone = async () => {
-        setIsDisable(true)
+        // try {
+        //     const result = addISTOffset(appointmentDate);
+        //     await request(RE_SCHEDULE_APPOINTMENT_API(id), HTTP_METHODS.POST, JSON.stringify({
+        //         "rescheduled_to": result,
+        //         "reschedule_reason": labelDiscription
+        //     }))
+        //     dispatch(fetchAppointment())
+        //     alert('Appointment Re-schedule Successfully!')
+        //     resetForm();
+        // } catch (e) {
+        //     alert(e?.response?.data?.message)
+        // } finally {
+        //     navigation.goBack()
+        // }
 
         try {
-            await request(CREATE_LABEL_API(), HTTP_METHODS.POST, JSON.stringify({
-                "name": labelName,
-                "description": labelDiscription
+            await request(CANCEL_APPOINTMENT_API(id), HTTP_METHODS.POST, JSON.stringify({
+                "cancel_reason": labelDiscription
             }))
-            dispatch(fetchLabels())
-            alert('Assign Successfully!')
-            navigation.goBack()
+            dispatch(fetchAppointment())
+            alert('Appointment Cancel Successfully!')
         } catch (e) {
-
-            alert(e?.response?.data?.message)
+            alert(JSON.stringify(e?.response))
+            //alert(e?.response?.data?.message)
         } finally {
-            resetForm();
-            setIsDisable(false)
+            navigation.goBack()
         }
-        //onSubmit?.({ name: "", description: "" });
-        //
     };
 
-    const isValid = labelName && labelDiscription;
-
+    const isValid = labelDiscription;
 
     // Card sizing: percentage/clamped width so it behaves correctly from a
     // 360dp Android phone up through a 1024pt+ iPad Pro landscape.
@@ -110,7 +118,6 @@ const AddLabel = ({ visible, onClose, onSubmit }) => {
 
     return (
         <Modal
-            visible={visible}
             transparent
             animationType="fade"
             onRequestClose={handleClose}
@@ -125,36 +132,24 @@ const AddLabel = ({ visible, onClose, onSubmit }) => {
                 <View style={[styles.card, cardStyle]}>
                     {/* Header */}
                     <View style={[styles.header, { paddingTop: Math.max(18, insets.top > 0 ? 18 : 18) }]}>
-                        <Text style={[styles.headerTitle, { fontSize: fontScale(18) }]}>Create Label</Text>
+                        <Text style={[styles.headerTitle, { fontSize: fontScale(18) }]}>Cancel Appointment</Text>
                         <TouchableOpacity onPress={handleClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
                             <Icon name="close" size={20} color="#333" />
                         </TouchableOpacity>
                     </View>
-
-                    {/* Scrollable body so nothing gets clipped on small phones
-                        when the dropdown + a picker are open at the same time */}
                     <ScrollView
                         style={styles.bodyScroll}
                         contentContainerStyle={styles.body}
                         keyboardShouldPersistTaps="handled"
                         showsVerticalScrollIndicator={false}
                     >
-                        {/* Doctor select labelName && labelDiscription*/}
-                        <Text style={[styles.label, { fontSize: fontScale(13) }]}>Label Name</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={labelName}
-                            onChangeText={(v) => setLabelName(v)}
-                            keyboardType={'default'}
-                            autoCapitalize={'sentences'}
-                            placeholderTextColor="#999"
-                        />
-
 
                         {/* Time + Date row: always stack on phones, side-by-side on tablets */}
                         <View style={[styles.rowFields, !isTabletWidth && styles.rowFieldsStacked]}>
+
+
                             <View style={styles.fieldCol}>
-                                <Text style={[styles.label, { fontSize: fontScale(13) }]}>Label Description</Text>
+                                <Text style={[styles.label, { fontSize: fontScale(13) }]}>Reason</Text>
                                 <TextInput
                                     style={[styles.input, styles.addressInput]}
                                     value={labelDiscription}
@@ -164,14 +159,7 @@ const AddLabel = ({ visible, onClose, onSubmit }) => {
                                     placeholderTextColor="#999"
                                 />
                             </View>
-
-
                         </View>
-
-                        {/* iOS inline spinners get an explicit Done/Cancel bar
-                            since the OS never dismisses them on its own */}
-
-
                     </ScrollView>
 
                     {/* Footer */}
@@ -180,11 +168,11 @@ const AddLabel = ({ visible, onClose, onSubmit }) => {
                             <Text style={styles.cancelText}>CANCEL</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={[styles.doneBtn, (!isValid || isDisable) && styles.doneBtnDisabled]}
+                            style={[styles.doneBtn, !isValid && styles.doneBtnDisabled]}
                             onPress={handleDone}
-                            disabled={!isValid || isDisable}
+                            disabled={!isValid}
                         >
-                            <Text style={styles.doneText}>Create</Text>
+                            <Text style={styles.doneText}>DONE</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -308,9 +296,9 @@ const styles = StyleSheet.create({
         borderColor: '#E4E7EB',
     },
     addressInput: {
-        height: 140,
+        height: 80,
         paddingTop: 14,
     }
 });
 
-export default AddLabel;
+export default CancelReason;

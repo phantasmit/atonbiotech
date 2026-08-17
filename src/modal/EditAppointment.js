@@ -12,6 +12,7 @@ import {
     FlatList,
     ScrollView,
     TextInput,
+    Clipboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -20,21 +21,24 @@ import colors from '../assets/appColor/colors';
 import fonts from '../assets/fonts/fonts';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { CREATE_APPOINTMENT_API } from '../services/api-end-points';
+import { CREATE_APPOINTMENT_API, RE_SCHEDULE_APPOINTMENT_API } from '../services/api-end-points';
 import { request } from '../services/services';
 import { HTTP_METHODS } from '../services/api-constants';
 import { fetchAppointment } from '../screens/addDoctor/hospitalThunks';
 
-// const MOCK_DOCTORS = [
-//     'Dr. Sarah Mitchell', 'Dr. James Carter', 'Dr. Emily Chen',
-//     'Dr. Michael Brown', 'Dr. Priya Nair', 'Dr. Robert Lee',
-// ];
+// const formatTime = (d) =>
+//     d ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+// const formatDate = (d) =>
+//     d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+const formatTime = (d) => {
+    const date = d instanceof Date ? d : new Date(d);
+    return d ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+};
 
-const formatTime = (d) =>
-    d ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-const formatDate = (d) =>
-    d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
-
+const formatDate = (d) => {
+    const date = d instanceof Date ? d : new Date(d);
+    return d ? date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+};
 // --- Responsive helpers -----------------------------------------------
 // Base reference width = 375 (iPhone SE / standard small phone)
 const BASE_WIDTH = 375;
@@ -53,12 +57,28 @@ const scale = (width, size) => {
     return Math.round(size * clamped);
 };
 // ------------------------------------------------------------------------
+// const splitDateTime = (isoString) => {
+//     const date = new Date(isoString);
+//     const pad = (num) => String(num).padStart(2, '0');
 
-const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
+//     const year = date.getUTCFullYear();
+//     const month = pad(date.getUTCMonth() + 1);
+//     const day = pad(date.getUTCDate());
+//     const hours = pad(date.getUTCHours());
+//     const minutes = pad(date.getUTCMinutes());
+//     const seconds = pad(date.getUTCSeconds());
+
+//     const datePart = `${year}-${month}-${day}`;
+//     const timePart = `${hours}:${minutes}:${seconds}`;
+
+//     return { datePart, timePart };
+// }
+const EditAppointment = ({ route }) => {
+    //
     const navigation = useNavigation();
     const dispatch = useDispatch()
     //
-    const { hospitalData } = useSelector((state) => state.hospitalReducer);
+    const { doctor_name, appointment_at, id, reschedule_reason } = route?.params;
     //
     const { width, height } = useWindowDimensions();
     const insets = useSafeAreaInsets();
@@ -66,13 +86,13 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
     const breakpoint = getBreakpoint(width);
     const isTabletWidth = breakpoint !== 'phone';
 
-    const [doctorName, setDoctorName] = useState('');
+    const [doctorName, setDoctorName] = useState(doctor_name ?? "");
     const [selectedItem, setSelectedItem] = useState({});
     const [doctorPickerOpen, setDoctorPickerOpen] = useState(false);
-    const [labelDiscription, setLabelDiscription] = useState('')
+    const [labelDiscription, setLabelDiscription] = useState(reschedule_reason ?? "")
 
-    const [appointmentDate, setAppointmentDate] = useState(null);
-    const [appointmentTime, setAppointmentTime] = useState(null);
+    const [appointmentDate, setAppointmentDate] = useState(appointment_at);
+    const [appointmentTime, setAppointmentTime] = useState(appointment_at);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -89,27 +109,42 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
 
     const handleClose = () => {
         resetForm();
-        onClose ? onClose() : navigation.goBack();
+        navigation.goBack();
     };
 
-    const handleDone = async () => {
+    function addISTOffset(isoString) {
+        const date = new Date(isoString);
 
+        // Add 5 hours 30 minutes (in milliseconds)
+        const istOffsetMs = (5 * 60 + 30) * 60 * 1000;
+        const istDate = new Date(date.getTime() + istOffsetMs);
+
+        const pad = (num) => String(num).padStart(2, '0');
+
+        const year = istDate.getUTCFullYear();
+        const month = pad(istDate.getUTCMonth() + 1);
+        const day = pad(istDate.getUTCDate());
+        const hours = pad(istDate.getUTCHours());
+        const minutes = pad(istDate.getUTCMinutes());
+        const seconds = pad(istDate.getUTCSeconds());
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+    const handleDone = async () => {
         try {
-            const result = formatDate(appointmentDate);
-            await request(CREATE_APPOINTMENT_API(), HTTP_METHODS.POST, JSON.stringify({
-                "hospital_id": selectedItem.id,
-                "appointment_at": result,
-                "purpose": labelDiscription
+            const result = addISTOffset(appointmentDate);
+            await request(RE_SCHEDULE_APPOINTMENT_API(id), HTTP_METHODS.POST, JSON.stringify({
+                "rescheduled_to": result,
+                "reschedule_reason": labelDiscription
             }))
             dispatch(fetchAppointment())
-            alert('Appointment Create Successfully!')
+            alert('Appointment Re-schedule Successfully!')
             resetForm();
         } catch (e) {
             alert(e?.response?.data?.message)
         } finally {
             navigation.goBack()
         }
-        //onSubmit?.({ doctorName, date: appointmentDate, time: appointmentTime });
     };
 
     const isValid = doctorName && appointmentDate && appointmentTime && labelDiscription;
@@ -149,28 +184,9 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
     })();
 
     const fontScale = (size) => scale(width, size);
-    
-    function formatDate(isoString) {
-        const date = new Date(isoString);
 
-        // Add 5 hours 30 minutes (in milliseconds)
-        const istOffsetMs = (5 * 60 + 30) * 60 * 1000;
-        const istDate = new Date(date.getTime() + istOffsetMs);
-
-        const pad = (num) => String(num).padStart(2, '0');
-
-        const year = istDate.getUTCFullYear();
-        const month = pad(istDate.getUTCMonth() + 1);
-        const day = pad(istDate.getUTCDate());
-        const hours = pad(istDate.getUTCHours());
-        const minutes = pad(istDate.getUTCMinutes());
-        const seconds = pad(istDate.getUTCSeconds());
-
-        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    }
     return (
         <Modal
-            visible={visible}
             transparent
             animationType="fade"
             onRequestClose={handleClose}
@@ -185,7 +201,7 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
                 <View style={[styles.card, cardStyle]}>
                     {/* Header */}
                     <View style={[styles.header, { paddingTop: Math.max(18, insets.top > 0 ? 18 : 18) }]}>
-                        <Text style={[styles.headerTitle, { fontSize: fontScale(18) }]}>Add Appointment</Text>
+                        <Text style={[styles.headerTitle, { fontSize: fontScale(18) }]}>Re-schedule Appointment</Text>
                         <TouchableOpacity onPress={handleClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
                             <Icon name="close" size={20} color="#333" />
                         </TouchableOpacity>
@@ -201,10 +217,9 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
                     >
                         {/* Doctor select */}
                         <Text style={[styles.label, { fontSize: fontScale(13) }]}>Doctor Name</Text>
-                        <TouchableOpacity
-                            style={styles.doctorRow}
+                        <View
+                            style={[styles.doctorRow, { backgroundColor: 'lightgray' }]}
                             activeOpacity={0.7}
-                            onPress={() => setDoctorPickerOpen((v) => !v)}
                         >
                             <Icon name="user-circle-o" size={22} color="#777" />
                             <Text
@@ -213,31 +228,10 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
                             >
                                 {doctorName || 'Doctor Name'}
                             </Text>
-                            <Text style={styles.selectOneText}>
-                                {doctorPickerOpen ? 'Close' : 'Select One'}
-                            </Text>
-                            <Icon name={doctorPickerOpen ? 'caret-up' : 'caret-down'} size={13} color="#999" style={{ marginLeft: 6 }} />
-                        </TouchableOpacity>
 
-                        {doctorPickerOpen && (
-                            <View style={styles.doctorDropdown}>
-                                <FlatList
-                                    data={hospitalData}
-                                    keyExtractor={(d) => d}
-                                    style={{ maxHeight: Math.min(200, height * 0.3) }}
-                                    nestedScrollEnabled
-                                    renderItem={({ item }) => (
-                                        <TouchableOpacity
-                                            style={styles.doctorOption}
-                                            onPress={() => { setDoctorName(item.doctor_name); setSelectedItem(item); setDoctorPickerOpen(false); }}
-                                        >
-                                            <Text style={styles.doctorOptionText}>{item.doctor_name}</Text>
-                                        </TouchableOpacity>
-                                    )}
-                                    ItemSeparatorComponent={() => <View style={styles.optionDivider} />}
-                                />
-                            </View>
-                        )}
+                        </View>
+
+
 
                         {/* Time + Date row: always stack on phones, side-by-side on tablets */}
                         <View style={[styles.rowFields, !isTabletWidth && styles.rowFieldsStacked]}>
@@ -287,7 +281,7 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
                         {showTimePicker && (
                             <View style={styles.pickerWrap}>
                                 <DateTimePicker
-                                    value={appointmentTime || new Date()}
+                                    value={new Date()}
                                     mode="time"
                                     is24Hour={false}
                                     display={Platform.OS === 'ios' ? 'spinner' : 'default'}
@@ -308,7 +302,7 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
                         {showDatePicker && (
                             <View style={styles.pickerWrap}>
                                 <DateTimePicker
-                                    value={appointmentDate || new Date()}
+                                    value={new Date()}
                                     mode="date"
                                     minimumDate={new Date()}
                                     display={Platform.OS === 'ios' ? 'spinner' : 'default'}
@@ -467,4 +461,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default AddAppointmentModal;
+export default EditAppointment;

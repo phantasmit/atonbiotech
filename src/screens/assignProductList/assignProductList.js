@@ -11,8 +11,7 @@ import {
     Platform,
     LayoutAnimation,
     UIManager,
-    ActivityIndicator,
-    Clipboard,
+    ActivityIndicator
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -78,13 +77,11 @@ const AssignProductList = ({ navigation, route }) => {
                 if (indexPos === 1) {
                     const result = await request(GET_PRODUCT_LIST_FOR_DOCTOR_API(id), HTTP_METHODS.GET, {});
                     if (!isActive) return; // screen was unmounted / navigated back — bail out
-                    Clipboard.setString(JSON.stringify(result?.response?.data?.data))
                     setItems(result?.response?.data?.data ?? []);
                     setIsLoading(false)
                 } else {
                     const result = await request(GET_PRODUCT_LIST_FOR_LABEL_API(id), HTTP_METHODS.GET, {});
                     if (!isActive) return; // screen was unmounted / navigated back — bail out
-                    Clipboard.setString(JSON.stringify(result?.response?.data?.data))
                     setItems(result?.response?.data?.data ?? []);
                     setIsLoading(false)
                 }
@@ -171,7 +168,7 @@ const AssignProductList = ({ navigation, route }) => {
         return (
             <TouchableOpacity
                 activeOpacity={selectionMode ? 0.7 : 1}
-                //  onPress={() => selectionMode && toggleSelect(item.id)}
+                onPress={() => { navigation.navigate('productDetail', item) }}
                 style={styles.row}
             >
                 {selectionMode && (
@@ -223,7 +220,7 @@ const AssignProductList = ({ navigation, route }) => {
         return (
             <TouchableOpacity
                 activeOpacity={selectionMode ? 0.7 : 1}
-                //onPress={() => selectionMode && toggleSelect(item.id)}
+                onPress={() => { navigation.navigate('productDetail', item) }}
                 style={styles.gridCard}
             >
                 <View style={styles.gridImageWrap}>

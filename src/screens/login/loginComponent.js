@@ -290,6 +290,7 @@ import { LOGIN_API } from "../../services/api-end-points";
 import { HTTP_METHODS } from "../../services/api-constants";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveUser } from './authSlice';
+import ParticleBackground from '../../component/ParticleBackground';
 
 const LoginComponent = () => {
 
@@ -302,147 +303,149 @@ const LoginComponent = () => {
     const dispatch = useDispatch();
 
     return (
-        <KeyboardAvoidingView
-            style={styles.flexOne}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-        >
-            <LinearGradient
-                colors={['#f3f6fb', '#f3f6fb']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.gradient}
+        <ParticleBackground>
+            <KeyboardAvoidingView
+                style={styles.flexOne}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
             >
-                <ScrollView
-                    style={styles.scrollView}
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
-                    contentContainerStyle={styles.scrollContent}
-                    // Ensures the focused input is scrolled above the keyboard automatically
-                    automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+                <LinearGradient
+                    colors={['#f3f6fb', '#f3f6fb']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.gradient}
                 >
-                    <View style={styles.box}>
-                        <View style={styles.contentWrapper}>
-                            {/* Branding pane - sits on the left in split
+                    <ScrollView
+                        style={styles.scrollView}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                        contentContainerStyle={styles.scrollContent}
+                        // Ensures the focused input is scrolled above the keyboard automatically
+                        automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+                    >
+                        <View style={styles.box}>
+                            <View style={styles.contentWrapper}>
+                                {/* Branding pane - sits on the left in split
                                 layout (tablet / landscape), on top otherwise */}
-                            <View style={styles.brandingPane}>
-                                <Image
-                                    source={icon}
-                                    style={styles.logo}
-                                    resizeMode="contain"
-                                />
-                                <Text style={styles.title}>
-                                    Welcome to Konsyl Pharmaceuticals
-                                </Text>
-                            </View>
+                                <View style={styles.brandingPane}>
+                                    <Image
+                                        source={icon}
+                                        style={styles.logo}
+                                        resizeMode="contain"
+                                    />
+                                    <Text style={styles.title}>
+                                        Welcome to Konsyl Pharmaceuticals
+                                    </Text>
+                                </View>
 
-                            {/* Form pane */}
-                            <View style={styles.formPane}>
-                                <Formik
-                                    initialValues={{
-                                        emailId: "",
-                                        password: "",
-                                        isLoading: false,
-                                    }}
-                                    validationSchema={Yup.object().shape({
-                                        emailId: Yup.string()
-                                            .trim()
-                                            .required('Please enter a username'),
-                                        password: Yup.string()
-                                            .trim()
-                                            .required('Password is required')
-                                            .min(6, "Minimum 6 characters required"),
-                                    })}
-                                    validateOnChange={true}
-                                    validateOnBlur={true}
-                                    onSubmit={async (values, { setSubmitting }) => {
-                                        setSubmitting(true);
-                                        try {
-                                            const result = await request(LOGIN_API(), HTTP_METHODS.POST, JSON.stringify({
-                                                "login": values.emailId,
-                                                "password": values.password,
-                                                "device_name": (Platform.OS === 'android') ? "android" : "ios"
-                                            }))
-                                            const { token, user } = result?.response?.data;
+                                {/* Form pane */}
+                                <View style={styles.formPane}>
+                                    <Formik
+                                        initialValues={{
+                                            emailId: "",
+                                            password: "",
+                                            isLoading: false,
+                                        }}
+                                        validationSchema={Yup.object().shape({
+                                            emailId: Yup.string()
+                                                .trim()
+                                                .required('Please enter a username'),
+                                            password: Yup.string()
+                                                .trim()
+                                                .required('Password is required')
+                                                .min(6, "Minimum 6 characters required"),
+                                        })}
+                                        validateOnChange={true}
+                                        validateOnBlur={true}
+                                        onSubmit={async (values, { setSubmitting }) => {
+                                            setSubmitting(true);
                                             try {
-                                                await AsyncStorage.setItem('authToken', token);
-                                                dispatch(saveUser(user));
-                                                dispatch(changeStack(stackEnum.APP_STACK));
-                                            } catch (error) {
-                                                console.error('Error saving token:', error);
+                                                const result = await request(LOGIN_API(), HTTP_METHODS.POST, JSON.stringify({
+                                                    "login": values.emailId,
+                                                    "password": values.password,
+                                                    "device_name": (Platform.OS === 'android') ? "android" : "ios"
+                                                }))
+                                                const { token, user } = result?.response?.data;
+                                                try {
+                                                    await AsyncStorage.setItem('authToken', token);
+                                                    dispatch(saveUser(user));
+                                                    dispatch(changeStack(stackEnum.APP_STACK));
+                                                } catch (error) {
+                                                    console.error('Error saving token:', error);
+                                                }
+
+                                            } catch (e) {
+                                                console.log('Login failed status:', e?.response?.status);
+                                                console.log('Login failed body:', e?.response?.data?.message);
+                                                alert(e?.response?.data?.message)
+                                            } finally {
+                                                setSubmitting(false);
                                             }
+                                        }}
+                                    >
+                                        {({
+                                            handleChange,
+                                            handleSubmit,
+                                            values,
+                                            errors,
+                                            touched,
+                                            isSubmitting,
+                                        }) => (
+                                            <>
+                                                <CustomTextInput
+                                                    leftIcon="account"
+                                                    placeholder="Username"
+                                                    value={values.emailId}
+                                                    onChangeText={handleChange('emailId')}
+                                                    error={touched.emailId && !!errors.emailId}
+                                                    errorText={errors.emailId}
+                                                    inputStyle={styles.input}
+                                                    outlineStyle={{ borderRadius: 10 }}
+                                                    outlineColor="#e2eaf4"
+                                                    activeOutlineColor="#eef3fb"
+                                                />
 
-                                        } catch (e) {
-                                            console.log('Login failed status:', e?.response?.status);
-                                            console.log('Login failed body:', e?.response?.data?.message);
-                                            alert(e?.response?.data?.message)
-                                        } finally {
-                                            setSubmitting(false);
-                                        }
-                                    }}
-                                >
-                                    {({
-                                        handleChange,
-                                        handleSubmit,
-                                        values,
-                                        errors,
-                                        touched,
-                                        isSubmitting,
-                                    }) => (
-                                        <>
-                                            <CustomTextInput
-                                                leftIcon="account"
-                                                placeholder="Username"
-                                                value={values.emailId}
-                                                onChangeText={handleChange('emailId')}
-                                                error={touched.emailId && !!errors.emailId}
-                                                errorText={errors.emailId}
-                                                inputStyle={styles.input}
-                                                outlineStyle={{ borderRadius: 10 }}
-                                                outlineColor="#e2eaf4"
-                                                activeOutlineColor="#eef3fb"
-                                            />
-
-                                            <CustomTextInput
-                                                leftIcon="lock"
-                                                rightIcon={isHidden ? 'eye-off' : 'eye'}
-                                                onRightIconPress={() => setIsHidden(prev => !prev)}
-                                                placeholder="Password"
-                                                value={values.password}
-                                                onChangeText={handleChange('password')}
-                                                secureTextEntry={isHidden}
-                                                error={touched.password && !!errors.password}
-                                                errorText={touched.password ? errors.password : ''}
-                                                inputStyle={styles.input}
-                                                outlineStyle={{ borderRadius: 10 }}
-                                                outlineColor="#e2eaf4"
-                                                activeOutlineColor="#eef3fb"
-                                            />
-                                            <LinearGradient
-                                                colors={['#1a73e8', '#3562a6']}
-                                                start={{ x: 0, y: 0 }}
-                                                end={{ x: 1, y: 1 }}
-                                                style={{ borderRadius: 10, paddingVertical: 8 }}
-                                            >
-                                                <Button
-                                                    mode="contained"
-                                                    onPress={handleSubmit}
-                                                    loading={isSubmitting}
-                                                    style={styles.loginButton}
-                                                    contentStyle={styles.loginButtonContent}
+                                                <CustomTextInput
+                                                    leftIcon="lock"
+                                                    rightIcon={isHidden ? 'eye-off' : 'eye'}
+                                                    onRightIconPress={() => setIsHidden(prev => !prev)}
+                                                    placeholder="Password"
+                                                    value={values.password}
+                                                    onChangeText={handleChange('password')}
+                                                    secureTextEntry={isHidden}
+                                                    error={touched.password && !!errors.password}
+                                                    errorText={touched.password ? errors.password : ''}
+                                                    inputStyle={styles.input}
+                                                    outlineStyle={{ borderRadius: 10 }}
+                                                    outlineColor="#e2eaf4"
+                                                    activeOutlineColor="#eef3fb"
+                                                />
+                                                <LinearGradient
+                                                    colors={['#1a73e8', '#3562a6']}
+                                                    start={{ x: 0, y: 0 }}
+                                                    end={{ x: 1, y: 1 }}
+                                                    style={{ borderRadius: 10, paddingVertical: 8 }}
                                                 >
-                                                    LOGIN
-                                                </Button>
-                                            </LinearGradient>
-                                        </>
-                                    )}
-                                </Formik>
+                                                    <Button
+                                                        mode="contained"
+                                                        onPress={handleSubmit}
+                                                        loading={isSubmitting}
+                                                        style={styles.loginButton}
+                                                        contentStyle={styles.loginButtonContent}
+                                                    >
+                                                        LOGIN
+                                                    </Button>
+                                                </LinearGradient>
+                                            </>
+                                        )}
+                                    </Formik>
+                                </View>
                             </View>
                         </View>
-                    </View>
-                </ScrollView>
-            </LinearGradient>
-        </KeyboardAvoidingView>
+                    </ScrollView>
+                </LinearGradient>
+            </KeyboardAvoidingView>
+        </ParticleBackground>
     );
 };
 

@@ -422,6 +422,8 @@ const AddDoctorComponent = () => {
                             setShowDobPicker(false);
                             setShowAnniversaryPicker(false);
                             dispatch(fetchHospitals());
+                            alert('Assign Successfully!')
+                            navigation.goBack();
                             //
                         } catch (e) {
                             console.log('Create doctor failed:', e?.response?.data?.message);
