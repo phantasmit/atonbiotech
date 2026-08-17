@@ -8,6 +8,7 @@ import {
     StyleSheet,
     Image,
     useWindowDimensions,
+    Clipboard,
 } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Menu } from 'react-native-paper';
@@ -17,48 +18,58 @@ import fonts from '../../assets/fonts/fonts';
 import AppointmentActionIcons from '../../component/AppointmentActionIcons';
 //import CloseAppointmentModal from '../../component/CloseAppointmentModal';
 import ExpandableFab from '../../component/ExpandableFab';
+import { useDispatch, useSelector } from 'react-redux';
+import { CANCEL_APPOINTMENT_API, IMAGE_BASE_URL } from '../../services/api-end-points';
+import { request } from '../../services/services';
+import { fetchAppointment } from '../addDoctor/hospitalThunks';
+import { HTTP_METHODS } from '../../services/api-constants';
 
 // ---------- Mock data ----------
-const DOCTOR_NAMES = [
-    'Harsh Harani', 'Rahul Mehta', 'Dr. Sarah Mitchell', 'Dr. James Carter',
-    'Dr. Emily Chen', 'Dr. Michael Brown', 'Dr. Priya Nair', 'Dr. Robert Lee',
-];
-const STATUSES = ['Confirmed', 'Pending', 'Cancelled', 'Closed'];
+// const DOCTOR_NAMES = [
+//     'Harsh Harani', 'Rahul Mehta', 'Dr. Sarah Mitchell', 'Dr. James Carter',
+//     'Dr. Emily Chen', 'Dr. Michael Brown', 'Dr. Priya Nair', 'Dr. Robert Lee',
+// ];
+//const STATUSES = ['Confirmed', 'Pending', 'Cancelled', 'Closed'];
 const STATUS_COLORS = {
-    Confirmed: '#268872',
-    Pending: '#B98900',
-    Cancelled: '#D2434B',
+    scheduled: '#268872',
+    rescheduled: '#B98900',
+    cancelled: '#D2434B',
     Closed: '#777777',
 };
-const TIMES = ['09:00 AM', '10:30 AM', '11:15 AM', '01:00 PM', '02:45 PM', '04:00 PM'];
+//const TIMES = ['09:00 AM', '10:30 AM', '11:15 AM', '01:00 PM', '02:45 PM', '04:00 PM'];
 
 const pad = (n) => String(n).padStart(2, '0');
-const formatISODate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+//const formatISODate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
-const generateMockAppointments = (count) =>
-    Array.from({ length: count }, (_, i) => {
-        // Spread mock dates across the past ~3 years for variety, matching the screenshot
-        const d = new Date();
-        d.setDate(d.getDate() - i * 37 - (i % 5));
-        d.setFullYear(d.getFullYear() - (i % 3));
-        return {
-            id: `appt-${i + 1}`,
-            doctorName: DOCTOR_NAMES[i % DOCTOR_NAMES.length],
-            date: formatISODate(d),
-            time: TIMES[i % TIMES.length],
-            status: STATUSES[i % STATUSES.length],
-        };
-    });
+// const generateMockAppointments = (count) =>
+//     Array.from({ length: count }, (_, i) => {
+//         // Spread mock dates across the past ~3 years for variety, matching the screenshot
+//         const d = new Date();
+//         d.setDate(d.getDate() - i * 37 - (i % 5));
+//         d.setFullYear(d.getFullYear() - (i % 3));
+//         return {
+//             id: `appt-${i + 1}`,
+//             doctorName: DOCTOR_NAMES[i % DOCTOR_NAMES.length],
+//             date: formatISODate(d),
+//             time: TIMES[i % TIMES.length],
+//             status: STATUSES[i % STATUSES.length],
+//         };
+//     });
 
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
 
 // ---------- Component ----------
 const AllAppointmentComponent = () => {
     const navigation = useNavigation();
+    //
+    const dispatch = useDispatch();
+    const { appointmentData } = useSelector((state) => state.hospitalReducer)
+    const { profile_picture } = useSelector((state) => state.auth.userData);
+    //
     const { width } = useWindowDimensions();
     const isTableLayout = width >= 700;
 
-    const allAppointments = useMemo(() => generateMockAppointments(37), []);
+    //    const allAppointments = useMemo(() => generateMockAppointments(37), []);
 
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(0);
@@ -69,12 +80,12 @@ const AllAppointmentComponent = () => {
     const [selectedAppointment, setSelectedAppointment] = useState(null);
 
     const filtered = useMemo(() => {
-        if (!search.trim()) return allAppointments;
+        if (!search.trim()) return appointmentData;
         const q = search.trim().toLowerCase();
-        return allAppointments.filter(
-            (a) => a.doctorName.toLowerCase().includes(q) || a.status.toLowerCase().includes(q)
+        return appointmentData.filter(
+            (a) => a.doctor_name.toLowerCase().includes(q) || a.status.toLowerCase().includes(q)
         );
-    }, [search, allAppointments]);
+    }, [search, appointmentData]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
     const clampedPage = Math.min(page, totalPages - 1);
@@ -99,10 +110,22 @@ const AllAppointmentComponent = () => {
 
     const handleEdit = (item) => {
         // TODO: navigate to edit screen with item
+        navigation.navigate('EditAppointment', item)
     };
 
     const handleDelete = (item) => {
         // TODO: confirm + delete
+
+        navigation.navigate('ConfirmModal', {
+            title: 'Cancel',
+            messageTemplate: "Are you sure to cancel {item} ?",
+            itemName: 'Appointment',
+            onConfirm: () => {
+                setTimeout(() => {
+                    navigation.navigate('CancelReason', item);
+                }, 100);
+            },
+        })
     };
 
     const StatusBadge = ({ status }) => (
@@ -110,6 +133,33 @@ const AllAppointmentComponent = () => {
             <Text style={[styles.badgeText, { color: STATUS_COLORS[status] || '#999' }]}>{status}</Text>
         </View>
     );
+
+    // function splitDateTime(isoString) {
+    //     const date = new Date(isoString);
+    //     const pad = (num) => String(num).padStart(2, '0');
+
+    //     const year = date.getUTCFullYear();
+    //     const month = pad(date.getUTCMonth() + 1);
+    //     const day = pad(date.getUTCDate());
+    //     const hours = pad(date.getUTCHours());
+    //     const minutes = pad(date.getUTCMinutes());
+    //     const seconds = pad(date.getUTCSeconds());
+
+    //     const datePart = `${year}-${month}-${day}`;
+    //     const timePart = `${hours}:${minutes}:${seconds}`;
+
+    //     return { datePart, timePart };
+    // }
+
+    const formatTimeForRow = (d) => {
+        const date = d instanceof Date ? d : new Date(d);
+        return d ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    };
+
+    const formatDateForRow = (d) => {
+        const date = d instanceof Date ? d : new Date(d);
+        return d ? date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+    };
 
     const renderTableHeader = () => (
         <View style={styles.tableHeaderRow}>
@@ -121,53 +171,74 @@ const AllAppointmentComponent = () => {
         </View>
     );
 
-    const renderTableRow = ({ item }) => (
-        <View style={styles.tableRow}>
-            <Text style={[styles.cell, { flex: 1.3 }]} numberOfLines={1}>{item.doctorName}</Text>
-            <Text style={[styles.cell, { flex: 1.2 }]}>{item.date}</Text>
-            <Text style={[styles.cell, { flex: 1 }]}>{item.time}</Text>
-            <View style={{ flex: 0.9 }}><StatusBadge status={item.status} /></View>
-            <View style={{ flex: 1.1, alignItems: 'flex-end' }}>
-                <AppointmentActionIcons
-                    onEdit={() => handleEdit(item)}
-                    onClose={() => openCloseModal(item)}
-                    onDelete={() => handleDelete(item)}
-                />
+    const renderTableRow = ({ item }) => {
+        //const { datePart, timePart } = splitDateTime(item.appointment_at);
+        return (
+            <View style={styles.tableRow}>
+                <Text style={[styles.cell, { flex: 1.3 }]} numberOfLines={1}>{item.doctor_name}</Text>
+                <Text style={[styles.cell, { flex: 1.2 }]}>{formatDateForRow(item.appointment_at)}</Text>
+                <Text style={[styles.cell, { flex: 1 }]}>{formatTimeForRow(item.appointment_at)}</Text>
+                <View style={{ flex: 0.9 }}><StatusBadge status={item.status} /></View>
+                <View style={{ flex: 1.1, alignItems: 'flex-end' }}>
+                    <AppointmentActionIcons
+                        onEdit={() => handleEdit(item)}
+                        onClose={() => handleDelete(item)}
+                        //onDelete={() => handleDelete(item)}
+                        isDeleteDisable={item.status === 'cancelled'}
+                        isEditDisable={item.status === 'cancelled'}
+                    />
+                </View>
             </View>
-        </View>
-    );
+        )
+    };
 
-    const renderCard = ({ item }) => (
-        <View style={styles.card}>
-            <View style={styles.cardTopRow}>
-                <Text style={styles.cardDoctor} numberOfLines={1}>{item.doctorName}</Text>
-                <StatusBadge status={item.status} />
+    const renderCard = ({ item }) => {
+        //const { datePart, timePart } = splitDateTime(item.appointment_at);
+        return (
+            <View style={styles.card}>
+                <View style={styles.cardTopRow}>
+                    <Text style={styles.cardDoctor} numberOfLines={1}>{item.doctor_name}</Text>
+                    <StatusBadge status={item.status} />
+                </View>
+                <View style={styles.cardMetaRow}>
+                    <Icon name="calendar" size={12} color="#888" />
+                    <Text style={styles.cardMetaText}>{formatDateForRow(item.appointment_at)}</Text>
+                    <Icon name="clock-o" size={12} color="#888" style={{ marginLeft: 14 }} />
+                    <Text style={styles.cardMetaText}>{formatTimeForRow(item.appointment_at)}</Text>
+                </View>
+                <View style={{ marginTop: 12 }}>
+                    <AppointmentActionIcons
+                        onEdit={() => handleEdit(item)}
+                        onClose={() => handleDelete(item)}
+                        //onDelete={() => handleDelete(item)}
+                        isDeleteDisable={item.status === 'cancelled'}
+                        isEditDisable={item.status === 'cancelled'}
+                    />
+                </View>
             </View>
-            <View style={styles.cardMetaRow}>
-                <Icon name="calendar" size={12} color="#888" />
-                <Text style={styles.cardMetaText}>{item.date}</Text>
-                <Icon name="clock-o" size={12} color="#888" style={{ marginLeft: 14 }} />
-                <Text style={styles.cardMetaText}>{item.time}</Text>
-            </View>
-            <View style={{ marginTop: 12 }}>
-                <AppointmentActionIcons
-                    onEdit={() => handleEdit(item)}
-                    onClose={() => openCloseModal(item)}
-                    onDelete={() => handleDelete(item)}
-                />
-            </View>
-        </View>
-    );
+        )
+    };
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.WHITE_COLOR }}>
             {/* Top app bar */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={openDrawer} hitSlop={{ top: 12, left: 12, right: 12, bottom: 12 }}>
-                    <Icon name="bars" size={20} color="#fff" />
+                    <Icon name="bars" size={20} color="black" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle} numberOfLines={1}>Konsyl Pharmaceuticals</Text>
-                <Image source={{ uri: 'https://i.pravatar.cc/100?img=12' }} style={styles.avatar} />
+                <TouchableOpacity onPress={() => { navigation.navigate('myProfile') }}>
+                    {
+                        profile_picture ?
+                            <Image
+                                source={{ uri: `${IMAGE_BASE_URL}/${profile_picture}` }}
+                                style={styles.avatar}
+                            /> :
+                            <View style={[styles.avatar, { alignItems: "center", justifyContent: "center" }]}>
+                                <TextInputPaper.Icon icon={'account'} />
+                            </View>
+                    }
+                </TouchableOpacity>
             </View>
 
             <FlatList
@@ -259,9 +330,9 @@ const AllAppointmentComponent = () => {
             <ExpandableFab
                 mainColor={colors.ICON_COLOR_PRIMARY}
                 actions={[
-                    { label: 'Add Appointment', icon: 'plus', color: '#D2434B', onPress: () => {} },
-                    { label: 'Add Label', icon: 'plus', color: '#FCCE3B', onPress: () => {} },
-                    { label: 'Add Doctor', icon: 'plus', color: '#55D88A', onPress: () => {} },
+                    { label: 'Add Appointment', icon: 'plus', color: '#D2434B', onPress: () => { } },
+                    { label: 'Add Label', icon: 'plus', color: '#FCCE3B', onPress: () => { } },
+                    { label: 'Add Doctor', icon: 'plus', color: '#55D88A', onPress: () => { } },
                 ]}
             />
 
@@ -279,19 +350,19 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.ICON_COLOR_PRIMARY,
+        backgroundColor: colors.WHITE_COLOR,
         paddingHorizontal: 16,
         paddingVertical: 14,
         gap: 16,
     },
     headerTitle: {
         flex: 1,
-        color: '#fff',
+        color: 'black',
         fontSize: 18,
         fontWeight: '700',
         fontFamily: fonts.POPPINS_REGULAR,
     },
-    avatar: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: '#fff' },
+    avatar: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: 'black' },
 
     listContent: { paddingBottom: 100, paddingTop: 16 },
 

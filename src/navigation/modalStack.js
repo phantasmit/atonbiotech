@@ -4,7 +4,9 @@ import AddLabel from '../modal/AddLabel';
 import AssignProduct from '../modal/AssignProduct';
 import ConfirmModal from '../modal/ConfirmModal';
 import EditModal from '../modal/EditModal';
-//ErrorPopup
+import EditAppointment from '../modal/EditAppointment';
+import CancelReason from '../modal/CancelReason';
+//
 const ModalStack = (Stack) => {
     return (
         <Stack.Group
@@ -63,6 +65,22 @@ const ModalStack = (Stack) => {
                     presentation: 'transparentModal',
                     animation: 'fade',
                 }} />
+            <Stack.Screen
+                name="EditAppointment"
+                component={EditAppointment}
+                options={{
+                    presentation: 'transparentModal',
+                    animation: 'fade',
+                }} />
+            <Stack.Screen
+                name="CancelReason"
+                component={CancelReason}
+                options={{
+                    presentation: 'transparentModal',
+                    animation: 'fade',
+                }} />
+
+
         </Stack.Group>
     )
 }

@@ -28,6 +28,9 @@ export const GET_PRODUCT_LIST_FOR_LABEL_API = (label_id) => `${BASE_URL}/labels/
 export const DELETE_PRODUCT_FROM_LABEL_API = (label_id, product_id) => `${BASE_URL}/labels/${label_id}/products/${product_id}`
 //APPOINTMENT
 export const APPOINTMENT_LIST_API = () => `${BASE_URL}/appointments`;
+export const CREATE_APPOINTMENT_API = () => `${BASE_URL}/appointments`;
+export const RE_SCHEDULE_APPOINTMENT_API = (appointment_id) => `${BASE_URL}/appointments/${appointment_id}/reschedule`;
+export const CANCEL_APPOINTMENT_API = (appointment_id) => `${BASE_URL}/appointments/${appointment_id}/cancel`;
 //PRODUCT
 export const GET_PRODUCT_API = (pageNo) => `${BASE_URL}/products?page=${pageNo}`;
 export const PRODUCT_LIST_API = (categoryID, pageNo) => `${BASE_URL}/categories/${categoryID}/products?page=${pageNo}`;

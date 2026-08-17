@@ -6,8 +6,7 @@ import {
     StyleSheet,
     ActivityIndicator,
     useWindowDimensions,
-    Platform,
-    Clipboard,
+    Platform
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -261,7 +260,6 @@ const ContactUsComponent = () => {
                 HTTP_METHODS.GET,
                 {}
             );
-            Clipboard.setString(JSON.stringify(result?.response?.data?.data))
             const data = result?.response?.data?.data;
             if (!data) {
                 setError('No data received');

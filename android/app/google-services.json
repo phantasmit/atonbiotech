@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "869305317281",
+    "project_id": "konsylpharma-9ee23",
+    "storage_bucket": "konsylpharma-9ee23.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:869305317281:android:6fdb75399a413c712bfde0",
+        "android_client_info": {
+          "package_name": "com.atonbiotech"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtBhwC5Olkyl4rCLBBU6VGeg8atL4mlsQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

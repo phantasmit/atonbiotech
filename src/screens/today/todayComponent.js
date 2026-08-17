@@ -8,7 +8,7 @@ import {
     StyleSheet,
     Image,
     useWindowDimensions,
-    ActivityIndicator,
+    ActivityIndicator
 } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Menu } from 'react-native-paper';
@@ -18,31 +18,17 @@ import fonts from '../../assets/fonts/fonts';
 import ExpandableFab from '../../component/ExpandableFab';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCategories, fetchHospitals, fetchLabels, fetchAppointment } from '../addDoctor/hospitalThunks';
-// ---------- Mock data ----------
-const DOCTOR_NAMES = [
-    'Dr. Sarah Mitchell', 'Dr. James Carter', 'Dr. Emily Chen',
-    'Dr. Michael Brown', 'Dr. Priya Nair', 'Dr. Robert Lee',
-    'Dr. Anjali Verma', 'Dr. David Kim',
-];
-const STATUSES = ['Confirmed', 'Pending', 'Cancelled'];
+import { IMAGE_BASE_URL } from '../../services/api-end-points';
+import { TextInput as TextInputPaper } from 'react-native-paper';
+
 const STATUS_COLORS = {
-    Confirmed: '#268872',
-    Pending: '#B98900',
-    Cancelled: '#D2434B',
+    scheduled: '#268872',
+    rescheduled: '#B98900',
+    cancelled: '#D2434B',
 };
-const TIMES = ['09:00 AM', '10:30 AM', '11:15 AM', '01:00 PM', '02:45 PM', '04:00 PM'];
 
 const formatDate = (d) =>
     d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
-
-const generateMockAppointments = (count, baseDate) =>
-    Array.from({ length: count }, (_, i) => ({
-        id: `appt-${i + 1}`,
-        doctorName: DOCTOR_NAMES[i % DOCTOR_NAMES.length],
-        date: formatDate(baseDate),
-        time: TIMES[i % TIMES.length],
-        status: STATUSES[i % STATUSES.length],
-    }));
 
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
 
@@ -53,23 +39,40 @@ const TodayComponent = () => {
     //
     const dispatch = useDispatch();
     const { categoryData, hospitalData, labelData, appointmentData, loading, error } = useSelector((state) => state.hospitalReducer)
+    const { profile_picture } = useSelector((state) => state.auth.userData);
     //
     const { width } = useWindowDimensions();
     const isTableLayout = width >= 700; // tablet/iPad or landscape phone -> table, else cards
 
     const today = useMemo(() => new Date(), []);
-    const allAppointments = useMemo(() => generateMockAppointments(23, today), [today]);
 
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(0);
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [menuVisible, setMenuVisible] = useState(false);
 
+    function getTodayDateString() {
+        const today = new Date();
+        const pad = (num) => String(num).padStart(2, '0');
+        return `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+    }
+
+    function getDatePart(isoString) {
+        return isoString.split('T')[0];
+    }
+
+    const todayDate = getTodayDateString();
+
+    const todayRecords = appointmentData.filter(
+        (record) => getDatePart(record.appointment_at) === todayDate
+    );
+
+
     const filtered = useMemo(() => {
-        if (!search.trim()) return allAppointments;
+        if (!search.trim()) return todayRecords;
         const q = search.trim().toLowerCase();
-        return allAppointments.filter((a) => a.doctorName.toLowerCase().includes(q));
-    }, [search, allAppointments]);
+        return todayRecords.filter((a) => a.doctor_name.toLowerCase().includes(q));
+    }, [search, todayRecords]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
     const clampedPage = Math.min(page, totalPages - 1);
@@ -80,10 +83,31 @@ const TodayComponent = () => {
     const goNext = () => setPage((p) => Math.min(totalPages - 1, p + 1));
     const openDrawer = () => navigation.dispatch(DrawerActions.openDrawer());
 
-    // useEffect(() => {
-    //     navigation.navigate('addDoctor')
-    // }, [])
+    // function splitDateTime(isoString) {
+    //     const date = new Date(isoString);
+    //     const pad = (num) => String(num).padStart(2, '0');
 
+    //     const year = date.getUTCFullYear();
+    //     const month = pad(date.getUTCMonth() + 1);
+    //     const day = pad(date.getUTCDate());
+    //     const hours = pad(date.getUTCHours());
+    //     const minutes = pad(date.getUTCMinutes());
+    //     const seconds = pad(date.getUTCSeconds());
+
+    //     const datePart = `${year}-${month}-${day}`;
+    //     const timePart = `${hours}:${minutes}:${seconds}`;
+
+    //     return { datePart, timePart };
+    // }
+    const formatTimeForRow = (d) => {
+        const date = d instanceof Date ? d : new Date(d);
+        return d ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    };
+
+    const formatDateForRow = (d) => {
+        const date = d instanceof Date ? d : new Date(d);
+        return d ? date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+    };
     const renderTableHeader = () => (
         <View style={styles.tableHeaderRow}>
             <Text style={[styles.headerCell, { flex: 1.3 }]}>Dr. Name</Text>
@@ -100,47 +124,59 @@ const TodayComponent = () => {
         </View>
     );
 
-    const renderTableRow = ({ item }) => (
-        <View style={styles.tableRow}>
-            <Text style={[styles.cell, { flex: 1.3 }]} numberOfLines={1}>{item.doctorName}</Text>
-            <Text style={[styles.cell, { flex: 1.2 }]}>{item.date}</Text>
-            <Text style={[styles.cell, { flex: 1 }]}>{item.time}</Text>
-            <View style={{ flex: 0.9 }}><StatusBadge status={item.status} /></View>
-            <View style={{ flex: 0.8, flexDirection: 'row', justifyContent: 'flex-end' }}>
-                <TouchableOpacity style={styles.iconBtn}>
-                    <Icon name="eye" size={16} color="#3DC2FF" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.iconBtn}>
-                    <Icon name="pencil" size={15} color="#268872" />
-                </TouchableOpacity>
+    const renderTableRow = ({ item }) => {
+        //const { datePart, timePart } = splitDateTime(item.appointment_at);
+        return (
+            <View style={styles.tableRow}>
+                <Text style={[styles.cell, { flex: 1.3 }]} numberOfLines={1}>{item.doctor_name}</Text>
+                <Text style={[styles.cell, { flex: 1.2 }]}>{formatDateForRow(item.appointment_at)}</Text>
+                <Text style={[styles.cell, { flex: 1 }]}>{formatTimeForRow(item.appointment_at)}</Text>
+                <View style={{ flex: 0.9 }}><StatusBadge status={item.status} /></View>
+                <View style={{ flex: 0.8, flexDirection: 'row', justifyContent: 'flex-end' }}>
+                    {/* <TouchableOpacity style={styles.iconBtn}>
+                        <Icon name="eye" size={16} color="#3DC2FF" />
+                    </TouchableOpacity> */}
+                    {
+                        !(item.status === 'cancelled') &&
+                        <TouchableOpacity onPress={() => { navigation.navigate('EditAppointment', item) }} style={styles.iconBtn}>
+                            <Icon name="pencil" size={15} color="#268872" />
+                        </TouchableOpacity>
+                    }
+                </View>
             </View>
-        </View>
-    );
+        )
+    };
 
-    const renderCard = ({ item }) => (
-        <View style={styles.card}>
-            <View style={styles.cardTopRow}>
-                <Text style={styles.cardDoctor} numberOfLines={1}>{item.doctorName}</Text>
-                <StatusBadge status={item.status} />
+    const renderCard = ({ item }) => {
+        //const { datePart, timePart } = splitDateTime(item.appointment_at);
+        return (
+            <View style={styles.card}>
+                <View style={styles.cardTopRow}>
+                    <Text style={styles.cardDoctor} numberOfLines={1}>{item.doctor_name}</Text>
+                    <StatusBadge status={item.status} />
+                </View>
+                <View style={styles.cardMetaRow}>
+                    <Icon name="calendar" size={12} color="#888" />
+                    <Text style={styles.cardMetaText}>{formatDateForRow(item.appointment_at)}</Text>
+                    <Icon name="clock-o" size={12} color="#888" style={{ marginLeft: 14 }} />
+                    <Text style={styles.cardMetaText}>{formatTimeForRow(item.appointment_at)}</Text>
+                </View>
+                <View style={styles.cardActionsRow}>
+                    {/* <TouchableOpacity onPress={() => { alert('test2') }} style={styles.cardActionBtn}>
+                        <Icon name="eye" size={13} color="#3DC2FF" />
+                        <Text style={[styles.cardActionText, { color: '#3DC2FF' }]}>View</Text>
+                    </TouchableOpacity> */}
+                    {
+                        !(item.status === 'cancelled') &&
+                        <TouchableOpacity onPress={() => { navigation.navigate('EditAppointment', item) }} style={styles.cardActionBtn}>
+                            <Icon name="pencil" size={13} color="#268872" />
+                            <Text onPress={() => { navigation.navigate('EditAppointment', item) }} style={[styles.cardActionText, { color: '#268872' }]}>Edit</Text>
+                        </TouchableOpacity>
+                    }
+                </View>
             </View>
-            <View style={styles.cardMetaRow}>
-                <Icon name="calendar" size={12} color="#888" />
-                <Text style={styles.cardMetaText}>{item.date}</Text>
-                <Icon name="clock-o" size={12} color="#888" style={{ marginLeft: 14 }} />
-                <Text style={styles.cardMetaText}>{item.time}</Text>
-            </View>
-            <View style={styles.cardActionsRow}>
-                <TouchableOpacity style={styles.cardActionBtn}>
-                    <Icon name="eye" size={13} color="#3DC2FF" />
-                    <Text style={[styles.cardActionText, { color: '#3DC2FF' }]}>View</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.cardActionBtn}>
-                    <Icon name="pencil" size={13} color="#268872" />
-                    <Text style={[styles.cardActionText, { color: '#268872' }]}>Edit</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
-    );
+        )
+    };
 
     useEffect(() => {
         Promise.allSettled([
@@ -170,10 +206,16 @@ const TodayComponent = () => {
                     </TouchableOpacity>
                     <Text style={styles.headerTitle} numberOfLines={1}>Konsyl Pharmaceuticals</Text>
                     <TouchableOpacity onPress={() => { navigation.navigate('myProfile') }}>
-                        <Image
-                            source={{ uri: 'https://i.pravatar.cc/100?img=12' }}
-                            style={styles.avatar}
-                        />
+                        {
+                            profile_picture ?
+                                <Image
+                                    source={{ uri: `${IMAGE_BASE_URL}/${profile_picture}` }}
+                                    style={styles.avatar}
+                                /> :
+                                <View style={[styles.avatar, { alignItems: "center", justifyContent: "center" }]}>
+                                    <TextInputPaper.Icon icon={'account'} />
+                                </View>
+                        }
                     </TouchableOpacity>
                 </View>
 
@@ -261,10 +303,6 @@ const TodayComponent = () => {
                         </View>
                     }
                 />
-
-                {/* <TouchableOpacity style={styles.fab} activeOpacity={0.85}>
-                <Icon name="plus" size={22} color="#fff" />
-            </TouchableOpacity> */}
                 <ExpandableFab
                     mainColor={colors.ICON_COLOR_PRIMARY}
                     actions={[
