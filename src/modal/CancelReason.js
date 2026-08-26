@@ -9,13 +9,10 @@ import {
     KeyboardAvoidingView,
     Platform,
     Pressable,
-    FlatList,
     ScrollView,
-    TextInput,
-    Clipboard,
+    TextInput
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import colors from '../assets/appColor/colors';
 import fonts from '../assets/fonts/fonts';
@@ -25,6 +22,7 @@ import { CANCEL_APPOINTMENT_API, CREATE_APPOINTMENT_API, RE_SCHEDULE_APPOINTMENT
 import { request } from '../services/services';
 import { HTTP_METHODS } from '../services/api-constants';
 import { fetchAppointment } from '../screens/addDoctor/hospitalThunks';
+import { showErrorToast, showSuccessToast } from '../utils/Toastutils';
 
 // --- Responsive helpers -----------------------------------------------
 // Base reference width = 375 (iPhone SE / standard small phone)
@@ -70,30 +68,15 @@ const CancelReason = ({ route }) => {
 
 
     const handleDone = async () => {
-        // try {
-        //     const result = addISTOffset(appointmentDate);
-        //     await request(RE_SCHEDULE_APPOINTMENT_API(id), HTTP_METHODS.POST, JSON.stringify({
-        //         "rescheduled_to": result,
-        //         "reschedule_reason": labelDiscription
-        //     }))
-        //     dispatch(fetchAppointment())
-        //     alert('Appointment Re-schedule Successfully!')
-        //     resetForm();
-        // } catch (e) {
-        //     alert(e?.response?.data?.message)
-        // } finally {
-        //     navigation.goBack()
-        // }
-
+       
         try {
             await request(CANCEL_APPOINTMENT_API(id), HTTP_METHODS.POST, JSON.stringify({
                 "cancel_reason": labelDiscription
             }))
             dispatch(fetchAppointment())
-            alert('Appointment Cancel Successfully!')
+            showSuccessToast('','Appointment Cancel Successfully!')
         } catch (e) {
-            alert(JSON.stringify(e?.response))
-            //alert(e?.response?.data?.message)
+            showErrorToast(e?.response)
         } finally {
             navigation.goBack()
         }

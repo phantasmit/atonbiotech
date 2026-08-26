@@ -23,6 +23,7 @@ import { HTTP_METHODS } from '../services/api-constants';
 import { dispatch } from '../navigation/RootNavigation';
 import { useDispatch } from 'react-redux';
 import { fetchHospitals, fetchLabels } from '../screens/addDoctor/hospitalThunks';
+import { showErrorToast } from '../utils/Toastutils';
 
 
 // --- Responsive helpers -----------------------------------------------
@@ -93,7 +94,7 @@ const EditModal = ({ route }) => {
             updateLabel && updateLabel(labelName)
             navigation.goBack()
         } catch (e) {
-            alert(e?.response?.data?.message)
+            showErrorToast(e?.response?.data?.message)
         } finally {
             resetForm();
             setIsDisable(false)
@@ -161,29 +162,6 @@ const EditModal = ({ route }) => {
                             placeholderTextColor="#999"
                             placeholder={labelText}
                         />
-
-
-                        {/* Time + Date row: always stack on phones, side-by-side on tablets */}
-                        {/* <View style={[styles.rowFields, !isTabletWidth && styles.rowFieldsStacked]}>
-                            <View style={styles.fieldCol}>
-                                <Text style={[styles.label, { fontSize: fontScale(13) }]}>Label Description</Text>
-                                <TextInput
-                                    style={[styles.input, styles.addressInput]}
-                                    value={labelDiscription}
-                                    onChangeText={(v) => setLabelDiscription(v)}
-                                    multiline
-                                    textAlignVertical="top"
-                                    placeholderTextColor="#999"
-                                />
-                            </View>
-
-
-                        </View> */}
-
-                        {/* iOS inline spinners get an explicit Done/Cancel bar
-                            since the OS never dismisses them on its own */}
-
-
                     </ScrollView>
 
                     {/* Footer */}

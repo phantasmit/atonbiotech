@@ -24,6 +24,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { request } from '../../services/services';
 import { ADD_FAVORITE_API, ADD_PRODUCT_TO_HOSPITAL_API, ADD_PRODUCT_TO_LABEL_API, GET_FAVORITE_API, PRODUCT_LIST_API, REMOVE_FAVORITE_API } from '../../services/api-end-points';
 import { HTTP_METHODS } from '../../services/api-constants';
+import { showErrorToast } from '../../utils/Toastutils';
+import AppHeader from '../../component/AppHeader';
 
 const PER_PAGE = 10;
 
@@ -131,7 +133,7 @@ const FavoriteComponent = () => {
             );
         } catch (err) {
             // revert on failure
-            alert(err?.response?.data?.message || 'Could not update favorite');
+            showErrorToast(err?.response?.data?.message || 'Could not update favorite');
         } finally {
 
         }
@@ -201,7 +203,7 @@ const FavoriteComponent = () => {
     };
 
     // ---------- Render helpers ----------
-    const renderListItem = ({ item }) => {
+    const renderListItem = ({ item, index }) => {
         //const item = items.product;
         const { name, thumb, packaging, ptr, mrp, id: itemId } = item.product;
         const isFavorite = true;
@@ -211,7 +213,14 @@ const FavoriteComponent = () => {
         return (
             <TouchableOpacity
                 activeOpacity={selectionMode ? 0.7 : 1}
-                onPress={() => { navigation.navigate('productDetail', item.product) }}
+                onPress={() => {
+                    navigation.navigate('ProductImageGallery', {
+                        images: displayedItems,
+                        initialIndex: index,
+                        selectedProductId: item.id
+                    })
+                    // navigation.navigate('productDetail', item.product) 
+                }}
                 style={styles.card}
             >
                 {selectionMode && (
@@ -221,7 +230,7 @@ const FavoriteComponent = () => {
                 )}
                 <View style={styles.imageWrap}>
                     {thumb ? (
-                        <Image source={{ uri: thumb }} style={styles.image} />
+                        <Image source={{ uri: thumb }} style={styles.image} resizeMode="cover" />
                     ) : (
                         <View style={[styles.image, styles.imagePlaceholder]}>
                             <Icon name="medkit" size={22} color="#bbb" />
@@ -235,7 +244,7 @@ const FavoriteComponent = () => {
                     )}
                     <View style={styles.priceRow}>
                         <Text style={styles.itemMrp}>MRP {formatCurrency(mrp)}</Text>
-                        {ptr > 0 && <Text style={styles.itemPtr}>PTR {formatCurrency(ptr)}</Text>}
+                        {/* {ptr > 0 && <Text style={styles.itemPtr}>PTR {formatCurrency(ptr)}</Text>} */}
                     </View>
                 </View>
                 {!selectionMode && (
@@ -255,7 +264,7 @@ const FavoriteComponent = () => {
         );
     };
 
-    const renderGridItem = ({ item }) => {
+    const renderGridItem = ({ item, index }) => {
         const { name, thumb, packaging, ptr, mrp, id: itemId } = item.product;
         const isSelected = !!selectedIds[itemId];
         const isFavorite = true;
@@ -263,12 +272,19 @@ const FavoriteComponent = () => {
         return (
             <TouchableOpacity
                 activeOpacity={selectionMode ? 0.7 : 1}
-                onPress={() => { navigation.navigate('productDetail', item.product) }}
+                onPress={() => {
+                    navigation.navigate('ProductImageGallery', {
+                        images: displayedItems,
+                        initialIndex: index,
+                        selectedProductId: item.id
+                    })
+                    // navigation.navigate('productDetail', item.product) 
+                }}
                 style={styles.gridCard}
             >
                 <View style={styles.gridImageWrap}>
                     {thumb ? (
-                        <Image source={{ uri: thumb }} style={styles.gridImage} />
+                        <Image source={{ uri: thumb }} style={styles.gridImage} resizeMode="cover" />
                     ) : (
                         <View style={[styles.gridImage, styles.imagePlaceholder]}>
                             <Icon name="medkit" size={26} color="#bbb" />
@@ -281,7 +297,7 @@ const FavoriteComponent = () => {
                     )}
                     {!selectionMode && (
                         <TouchableOpacity
-                            style={styles.gridFavoriteBtn}
+                            style={{ position: "absolute", alignSelf: "flex-start", margin: 10 }}
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             onPress={() => toggleFavorite(item)}
                         >
@@ -309,10 +325,10 @@ const FavoriteComponent = () => {
             <View style={styles.emptyWrap}>
                 <Icon name="inbox" size={40} color="#ccc" />
                 <Text style={styles.emptyTitle}>{error ? 'Something went wrong' : 'No Product found'}</Text>
-                <TouchableOpacity style={styles.retryBtn} onPress={onRetry}>
+                {/* <TouchableOpacity style={styles.retryBtn} onPress={onRetry}>
                     <Icon name="refresh" size={14} color="#fff" style={{ marginRight: 8 }} />
                     <Text style={styles.retryText}>Retry</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
             </View>
         );
     };
@@ -327,15 +343,21 @@ const FavoriteComponent = () => {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+        <View style={{ flex: 1, backgroundColor: '#F4F6F8' }}>
             {/* Header */}
-            <View style={[styles.header, { paddingTop: insets.top > 0 ? 14 : 14, backgroundColor: '#f3f6fb' }]}>
+            {/* <View style={[styles.header, { paddingTop: insets.top > 0 ? 14 : 14, backgroundColor: '#f3f6fb' }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
                     <Icon name="arrow-left" size={16} color="black" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{`Favorite`}</Text>
                 <View style={{ width: 20 }} />
-            </View>
+            </View> */}
+            <AppHeader
+                title="Favorite"
+                onLeftPress={() => navigation.goBack()}
+                leftIconName="chevron-left"
+                rightType="none"
+            />
 
             {/* Search + controls */}
             <View style={[styles.controlsRow, isTablet && styles.controlsRowTablet]}>
@@ -435,14 +457,14 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F2F2F2',
+        backgroundColor: 'white',
         borderRadius: 8,
         paddingHorizontal: 12,
         height: 44,
     },
     searchInput: { flex: 1, fontSize: 14, color: '#222', padding: 0 },
     iconSquareBtn: {
-        width: 44, height: 44, borderRadius: 10, backgroundColor: '#F2F2F2',
+        width: 44, height: 44, borderRadius: 10, backgroundColor: 'white',
         alignItems: 'center', justifyContent: 'center', flexDirection: 'row',
     },
     assignBtn: { width: 'auto', paddingHorizontal: 10 },

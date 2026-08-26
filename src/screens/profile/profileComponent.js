@@ -91,7 +91,7 @@ const MyProfileScreen = () => {
     return (
         <View style={styles.screen}>
             {/* Header bar */}
-            <View style={[styles.headerBar, { paddingTop: Math.max(12, insets.top), backgroundColor: "#f3f6fb" }]}>
+            {/* <View style={[styles.headerBar, { paddingTop: Math.max(12, insets.top), backgroundColor: "#f3f6fb" }]}>
                 <TouchableOpacity
                     onPress={() => navigation.goBack()}
                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -101,7 +101,7 @@ const MyProfileScreen = () => {
                 </TouchableOpacity>
                 <Text style={[styles.headerTitle, { fontSize: fontScale(20) }]}>My Profile</Text>
                 <View style={{ width: 32 }} />
-            </View>
+            </View> */}
 
             {/* Patterned background body */}
             {/* <ImageBackground

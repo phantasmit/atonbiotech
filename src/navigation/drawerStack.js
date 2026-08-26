@@ -39,6 +39,7 @@ import { useWindowDimensions } from "react-native";
 import { Tabs } from "./tabs";
 import { DrawerOption } from './drawerOption';
 import colors from "../assets/appColor/colors";
+import DashboardComponent from '../screens/dashboard/dashboardComponent';
 //
 const Drawer = createDrawerNavigator();
 //
@@ -68,7 +69,8 @@ const DrawerStack = () => {
                 },
             }}
         >
-            <Drawer.Screen name="Tabs" component={Tabs} />
+            <Drawer.Screen name="Tabs" component={DashboardComponent} />
+            <Drawer.Screen name="Appointment" component={Tabs} />
         </Drawer.Navigator>
     );
 };

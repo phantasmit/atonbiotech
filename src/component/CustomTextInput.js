@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { TextInput } from 'react-native-paper';
+import GradientIconBadge from './GradientIconBadge';
+import { background } from '../utils/images';
 
 /**
  * Wraps react-native-paper's TextInput so icons are opt-in.
@@ -34,12 +36,39 @@ const CustomTextInput = ({
                 style={[styles.input, inputStyle]}
                 left={
                     leftIcon ? (
-                        <TextInput.Icon icon={leftIcon} onPress={onLeftIconPress} />
+                        <TextInput.Icon
+                            icon={() => (
+                                <GradientIconBadge
+                                    colors={['transparent', 'transparent']}
+                                    iconName={leftIcon}
+                                    iconColor="#6b7785"
+                                    style={{
+                                        width: 20,
+                                        height: 20
+                                    }}
+                                    iconSize={18}
+                                />
+                            )}
+                        />
                     ) : undefined
                 }
                 right={
                     rightIcon ? (
-                        <TextInput.Icon icon={rightIcon} onPress={onRightIconPress} />
+                        <TextInput.Icon
+                            icon={() => (
+                                <GradientIconBadge
+                                    colors={['transparent', 'transparent']}
+                                    iconName={rightIcon}
+                                    iconColor="#6b7785"
+                                    style={{
+                                        width: 20,
+                                        height: 20
+                                    }}
+                                    iconSize={18}
+                                />
+                            )}
+                            onPress={onRightIconPress}
+                        />
                     ) : undefined
                 }
                 {...rest}
@@ -48,7 +77,8 @@ const CustomTextInput = ({
         </View>
     );
 };
-
+//<TextInput.Icon icon={leftIcon} onPress={onLeftIconPress} />
+//<TextInput.Icon icon={rightIcon} onPress={onRightIconPress} />
 const styles = StyleSheet.create({
     wrapper: {
         width: '100%',

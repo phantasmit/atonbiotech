@@ -29,6 +29,7 @@ import {
 } from '../../services/api-end-points';
 import { HTTP_METHODS } from '../../services/api-constants';
 import { fetchHospitals, fetchLabels } from '../addDoctor/hospitalThunks';
+import { showErrorToast } from '../../utils/Toastutils';
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -63,7 +64,7 @@ const AssignProductList = ({ navigation, route }) => {
             }
             navigation.goBack()
         } catch (e) {
-            alert(e?.response?.data?.message)
+            showErrorToast(e?.response?.data?.message)
         } finally {
             setIsLoading(false)
         }
@@ -87,8 +88,7 @@ const AssignProductList = ({ navigation, route }) => {
                 }
             } catch (err) {
                 if (!isActive) return;
-                console.error('Failed to load products', err);
-                alert(err?.message)
+                showErrorToast(err?.message)
                 setIsLoading(false)
             }
         };
@@ -152,23 +152,30 @@ const AssignProductList = ({ navigation, route }) => {
     }, [dispatch, id]);
 
     const handleEdit = () => {
-        //
-        navigation.navigate('EditModal', {
+        navigation.navigate((indexPos === 1) ? 'updateDoctor' : 'EditModal', {
             id: id,
             labelText: headerTitle,
             indexPosition: indexPos,
+            doctor: route.params,
             updateLabel: (title) => {
                 setHeaderTitle(title)
             }
         })
     };
     const formatCurrency = (value) => `₹${(Number(value) || 0).toFixed(2)}`;
-    const renderListItem = ({ item }) => {
+    const renderListItem = ({ item, index }) => {
         const isSelected = !!selectedIds[item.id];
         return (
             <TouchableOpacity
                 activeOpacity={selectionMode ? 0.7 : 1}
-                onPress={() => { navigation.navigate('productDetail', item) }}
+                onPress={() => {
+                    navigation.navigate('ProductImageGallery', {
+                        images: displayedItems,
+                        initialIndex: index,
+                        selectedProductId: item.id
+                    })
+                    //navigation.navigate('productDetail', item) 
+                }}
                 style={styles.row}
             >
                 {selectionMode && (
@@ -190,7 +197,7 @@ const AssignProductList = ({ navigation, route }) => {
                     )}
                     <View style={styles.priceRow}>
                         <Text style={styles.itemMrp}>MRP {formatCurrency(item.mrp)}</Text>
-                        {item.ptr > 0 && <Text style={styles.itemPtr}>PTR {formatCurrency(item.ptr)}</Text>}
+                        {/* {item.ptr > 0 && <Text style={styles.itemPtr}>PTR {formatCurrency(item.ptr)}</Text>} */}
                     </View>
                     {/* {!!item.qty && <Text style={styles.itemQty} numberOfLines={1}>{item.qty}</Text>}
                     {!!item.description && (
@@ -215,12 +222,19 @@ const AssignProductList = ({ navigation, route }) => {
         );
     };
 
-    const renderGridItem = ({ item }) => {
+    const renderGridItem = ({ item, index }) => {
         const isSelected = !!selectedIds[item.id];
         return (
             <TouchableOpacity
                 activeOpacity={selectionMode ? 0.7 : 1}
-                onPress={() => { navigation.navigate('productDetail', item) }}
+                onPress={() => {
+                    navigation.navigate('ProductImageGallery', {
+                        images: displayedItems,
+                        initialIndex: index,
+                        selectedProductId: item.id
+                    })
+                    //navigation.navigate('productDetail', item) 
+                }}
                 style={styles.gridCard}
             >
                 <View style={styles.gridImageWrap}>
@@ -261,11 +275,11 @@ const AssignProductList = ({ navigation, route }) => {
     );
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.SURFACE ?? '#fff' }}>
+        <View style={{ flex: 1, backgroundColor: colors.SURFACE ?? '#F4F6F8' }}>
             {/* Header */}
-            <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top : 14, backgroundColor: '#f3f6fb' }]}>
+            <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top : 14, backgroundColor: '#6B9FE4' }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                    <Icon name="arrow-left" size={16} color="black" />
+                    <Icon name="arrow-left" size={16} color="white" />
                 </TouchableOpacity>
 
                 <Text style={styles.headerTitle} numberOfLines={1}>
@@ -274,10 +288,10 @@ const AssignProductList = ({ navigation, route }) => {
 
                 <View style={styles.headerActions}>
                     <TouchableOpacity onPress={handleEdit} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ marginRight: 18 }}>
-                        <Icon name="pencil" size={17} color={colors.SURFACE ?? 'black'} />
+                        <Icon name="pencil" size={17} color={colors.SURFACE ?? 'white'} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={enterSelectionMode} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ marginRight: 18 }}>
-                        <Icon name="trash" size={18} color={colors.SURFACE ?? 'black'} />
+                        <Icon name="trash" size={18} color={colors.SURFACE ?? 'white'} />
                     </TouchableOpacity>
 
                 </View>
@@ -355,7 +369,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         flex: 1,
-        color: colors.SURFACE ?? 'black',
+        color: colors.SURFACE ?? 'white',
         fontSize: 18,
         fontFamily: fonts.POPPINS_MEDIUM ?? fonts.POPPINS_REGULAR,
         marginLeft: 16,
@@ -368,7 +382,7 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.INPUT_BG ?? '#F2F2F2',
+        backgroundColor: colors.INPUT_BG ?? 'white',
         borderRadius: 8,
         paddingHorizontal: 12,
         height: 44,
@@ -384,7 +398,7 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 10,
-        backgroundColor: colors.INPUT_BG ?? '#F2F2F2',
+        backgroundColor: colors.INPUT_BG ?? 'white',
         alignItems: 'center',
         justifyContent: 'center',
     },

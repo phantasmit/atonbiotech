@@ -1,255 +1,9 @@
-// import React, { useState } from 'react';
-// import {
-//     View,
-//     Text,
-//     TextInput,
-//     TouchableOpacity,
-//     ScrollView,
-//     StyleSheet,
-//     useWindowDimensions,
-//     KeyboardAvoidingView,
-//     Platform,
-// } from 'react-native';
-// import { useNavigation } from '@react-navigation/native';
-// import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// import Icon from 'react-native-vector-icons/FontAwesome';
-// import colors from '../../assets/appColor/colors';
-// import fonts from '../../assets/fonts/fonts';
-// import { useSelector } from 'react-redux';
-
-// const FIELD_CONFIG = [
-//     { key: 'firstName', label: 'First Name', keyboardType: 'default' },
-//     { key: 'lastName', label: 'Last Name', keyboardType: 'default' },
-//     { key: 'mobileNumber', label: 'Mobile Number', keyboardType: 'phone-pad' },
-//     { key: 'email', label: 'Email', keyboardType: 'email-address' },
-//     { key: 'city', label: 'City', keyboardType: 'default' },
-//     { key: 'state', label: 'State', keyboardType: 'default' },
-//     { key: 'address_line1', label: 'Address 1', keyboardType: 'default' },
-//     { key: 'address_line2', label: 'Address 2', keyboardType: 'default' },
-//     { key: 'zip_code', label: 'ZipCode', keyboardType: 'number' },
-// ];
-
-// const UpdateProfileComponent = () => {
-//     const navigation = useNavigation();
-//     const { width } = useWindowDimensions();
-//     const insets = useSafeAreaInsets();
-//     const isWideLayout = width >= 600; // tablet/iPad or landscape phone -> two columns
-
-//     const userInfo = useSelector((state) => state.auth.userData);
-//     const {
-//         first_name = '',
-//         last_name = "",
-//         email = '',
-//         avatarUrl = null,
-//         company_name = '',
-//         mobile_number = '',
-//         address_line1 = '',
-//         address_line2 = '',
-//         zip_code = '',
-//         city = "",
-//         state = ""
-//     } = userInfo;
-
-//     const [form, setForm] = useState({
-//         firstName: first_name,
-//         lastName: last_name,
-//         mobileNumber: mobile_number,
-//         email: email,
-//         city: city,
-//         state: state,
-//         address_line1: address_line1,
-//         address_line2: address_line2,
-//         zip_code: zip_code,
-//     });
-
-
-
-
-//     const setField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
-
-//     const handleUpdate = () => {
-//         // TODO: wire to real API / redux action
-//         console.log('Updating profile:', form);
-//     };
-
-//     // Pair up fields into rows of 2 for wide layout
-//     const fieldRows = [];
-//     for (let i = 0; i < FIELD_CONFIG.length; i += 2) {
-//         fieldRows.push(FIELD_CONFIG.slice(i, i + 2));
-//     }
-
-//     const renderField = (field) => (
-//         <View key={field.key} style={styles.fieldCol}>
-//             <Text style={styles.label}>{field.label}</Text>
-//             <TextInput
-//                 style={styles.input}
-//                 value={form[field.key]}
-//                 onChangeText={(v) => setField(field.key, v)}
-//                 keyboardType={field.keyboardType}
-//                 autoCapitalize={field.key === 'email' ? 'none' : 'sentences'}
-//                 placeholderTextColor="#999"
-//             />
-//         </View>
-//     );
-
-//     return (
-//         <View style={{ flex: 1, backgroundColor: '#F4F6F8' }}>
-//             {/* Header */}
-//             <View style={[styles.header, { paddingTop: insets.top > 0 ? 14 : 14, backgroundColor: '#f3f6fb' }]}>
-//                 <TouchableOpacity
-//                     onPress={() => navigation.goBack()}
-//                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-//                 >
-//                     <Icon name="arrow-left" size={16} color="black" />
-//                 </TouchableOpacity>
-//                 <Text style={styles.headerTitle}>Update Profile</Text>
-//                 <View style={{ width: 20 }} />
-//             </View>
-
-//             <KeyboardAvoidingView
-//                 style={{ flex: 1 }}
-//                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-//                 keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
-//             >
-//                 <ScrollView
-//                     contentContainerStyle={[
-//                         styles.scrollContent,
-//                         {
-//                             paddingHorizontal: isWideLayout ? 32 : 20,
-//                             maxWidth: isWideLayout ? 900 : undefined,
-//                             alignSelf: isWideLayout ? 'center' : 'stretch',
-//                             width: '100%',
-//                         },
-//                         { paddingBottom: insets.bottom + 40 },
-//                     ]}
-//                     showsVerticalScrollIndicator={false}
-//                     keyboardShouldPersistTaps="handled"
-//                 >
-//                     {isWideLayout
-//                         ? fieldRows.map((row, rowIndex) => (
-//                             <View key={`row-${rowIndex}`} style={styles.fieldRow}>
-//                                 {row.map(renderField)}
-//                                 {row.length === 1 && <View style={styles.fieldCol} />}
-//                             </View>
-//                         ))
-//                         : FIELD_CONFIG.map((field) => (
-//                             <View key={field.key} style={styles.fieldRowStacked}>
-//                                 {renderField(field)}
-//                             </View>
-//                         ))}
-
-//                     <View style={[styles.submitRow, !isWideLayout && styles.submitRowStacked]}>
-//                         <TouchableOpacity
-//                             style={[styles.updateBtn, !isWideLayout && { width: '100%' }]}
-//                             onPress={handleUpdate}
-//                             activeOpacity={0.85}
-//                         >
-//                             <Text style={styles.updateBtnText}>UPDATE NOW</Text>
-//                         </TouchableOpacity>
-//                     </View>
-//                 </ScrollView>
-//             </KeyboardAvoidingView>
-//         </View>
-//     );
-// };
-
-// const styles = StyleSheet.create({
-//     header: {
-//         flexDirection: 'row',
-//         alignItems: 'center',
-//         justifyContent: 'space-between',
-//         backgroundColor: colors.ICON_COLOR_PRIMARY,
-//         paddingHorizontal: 16,
-//         paddingVertical: 14,
-//     },
-//     headerTitle: {
-//         flex: 1,
-//         color: 'black',
-//         fontSize: 19,
-//         fontWeight: '500',
-//         fontFamily: fonts.POPPINS_REGULAR,
-//         marginLeft: 20,
-//     },
-
-//     scrollContent: {
-//         paddingTop: 28,
-//     },
-
-//     fieldRow: {
-//         flexDirection: 'row',
-//         gap: 24,
-//         marginBottom: 22,
-//     },
-//     fieldRowStacked: {
-//         marginBottom: 18,
-//     },
-//     fieldCol: {
-//         flex: 1,
-//     },
-//     fieldFullWidth: {
-//         marginTop: 6,
-//         marginBottom: 28,
-//     },
-
-//     label: {
-//         fontSize: 14,
-//         color: '#666',
-//         marginBottom: 8,
-//         fontFamily: fonts.POPPINS_REGULAR,
-//     },
-//     input: {
-//         backgroundColor: '#fff',
-//         borderRadius: 8,
-//         paddingHorizontal: 16,
-//         paddingVertical: 14,
-//         fontSize: 16,
-//         color: '#222',
-//         borderWidth: 1,
-//         borderColor: '#E4E7EB',
-//     },
-//     addressInput: {
-//         height: 160,
-//         paddingTop: 14,
-//     },
-
-//     submitRow: {
-//         flexDirection: 'row',
-//         justifyContent: 'flex-end',
-//     },
-//     submitRowStacked: {
-//         justifyContent: 'center',
-//     },
-//     updateBtn: {
-//         backgroundColor: colors.ICON_COLOR_PRIMARY,
-//         paddingVertical: 16,
-//         paddingHorizontal: 40,
-//         borderRadius: 8,
-//         alignItems: 'center',
-//         elevation: 2,
-//         shadowColor: '#000',
-//         shadowOffset: { width: 0, height: 2 },
-//         shadowOpacity: 0.15,
-//         shadowRadius: 4,
-//     },
-//     updateBtnText: {
-//         color: '#fff',
-//         fontSize: 15,
-//         fontWeight: '700',
-//         letterSpacing: 0.5,
-//     },
-// });
-
-// export default UpdateProfileComponent;
-// export { UpdateProfileComponent };
-
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     View,
     Text,
-    TextInput,
     TouchableOpacity,
     ScrollView,
-    StyleSheet,
     useWindowDimensions,
     KeyboardAvoidingView,
     Platform,
@@ -257,12 +11,13 @@ import {
     Alert,
     ActionSheetIOS,
     PermissionsAndroid,
+    StyleSheet,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import colors from '../../assets/appColor/colors';
-import fonts from '../../assets/fonts/fonts';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import { Formik } from 'formik';
+import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
@@ -272,103 +27,77 @@ import { HTTP_METHODS } from '../../services/api-constants';
 import { saveUser } from '../login/authSlice';
 import LinearGradient from 'react-native-linear-gradient';
 import { Button } from 'react-native-paper';
+import CustomTextInput from '../../component/CustomTextInput';
+import { useResponsiveLayout } from '../../component/Useresponsivelayout';
+// Same shared card styles Login/ForgotPassword/OTP already use, so this
+// screen picks up box / headerBand / logoCircleWrap / formPane / fieldsGrid
+// for free instead of a separate local StyleSheet.
+import { makeAuthStyles } from '../registration/authStyles';
+import { showSuccessToast, showErrorToast } from '../../utils/Toastutils';
+import fonts from '../../assets/fonts/fonts';
 
 const FIELD_CONFIG = [
-    { key: 'firstName', label: 'First Name', keyboardType: 'default' },
-    { key: 'lastName', label: 'Last Name', keyboardType: 'default' },
-    { key: 'mobileNumber', label: 'Mobile Number', keyboardType: 'phone-pad' },
-    { key: 'email', label: 'Email', keyboardType: 'email-address' },
-    { key: 'city', label: 'City', keyboardType: 'default' },
-    { key: 'state', label: 'State', keyboardType: 'default' },
-    { key: 'address_line1', label: 'Address 1', keyboardType: 'default' },
-    { key: 'address_line2', label: 'Address 2', keyboardType: 'default' },
-    { key: 'zip_code', label: 'ZipCode', keyboardType: 'number' },
+    { key: 'firstName', label: 'First Name', leftIcon: 'user', keyboardType: 'default', required: true },
+    { key: 'lastName', label: 'Last Name', leftIcon: 'user', keyboardType: 'default', required: true },
+    { key: 'mobileNumber', label: 'Mobile Number', leftIcon: 'phone-alt', keyboardType: 'phone-pad', required: true },
+    { key: 'email', label: 'Email', leftIcon: 'envelope', keyboardType: 'email-address', required: true },
+    { key: 'address_line1', label: 'Address 1', leftIcon: 'home', keyboardType: 'default', full: true },
+    { key: 'address_line2', label: 'Address 2', leftIcon: 'home', keyboardType: 'default', full: true },
+    { key: 'city', label: 'City', leftIcon: 'city', keyboardType: 'default' },
+    { key: 'state', label: 'State', leftIcon: 'map-marker-alt', keyboardType: 'default' },
+    { key: 'zip_code', label: 'ZipCode', leftIcon: 'hashtag', keyboardType: 'number-pad' },
 ];
+
+const getBreakpoint = (width) => {
+    if (width >= 900) return 'largeTablet'; // iPad Pro / landscape iPad
+    if (width >= 600) return 'tablet';      // iPad mini/portrait, Android tablets
+    return 'phone';                         // all phones, iOS & Android
+};
 
 const UpdateProfileComponent = () => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const { width } = useWindowDimensions();
+    const { width, height: screenHeight } = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const isWideLayout = width >= 600; // tablet/iPad or landscape phone -> two columns
 
-    // Responsive avatar sizing: bigger on tablets, scales down on small phones
-    const avatarSize = Math.min(Math.max(width * 0.28, 90), 160);
+    const layout = useResponsiveLayout();
+    const styles = useMemo(() => makeAuthStyles(layout, screenHeight), [layout, screenHeight]);
+
+    // Avatar circle sizes with the header — bigger on tablets, scales down on small phones
+    const avatarSize = layout.imageSize;
 
     const userInfo = useSelector((state) => state.auth.userData);
     const {
         first_name = '',
-        last_name = "",
+        last_name = '',
         email = '',
-        avatarUrl = null,
-        company_name = '',
         mobile_number = '',
         address_line1 = '',
         address_line2 = '',
         zip_code = '',
-        city = "",
-        state = "",
-        profile_picture = ""
+        city = '',
+        state = '',
+        profile_picture = '',
     } = userInfo;
 
-    const [form, setForm] = useState({
-        firstName: first_name,
-        lastName: last_name,
-        mobileNumber: mobile_number,
-        email: email,
-        city: city,
-        state: state,
-        address_line1: address_line1,
-        address_line2: address_line2,
-        zip_code: zip_code,
-    });
-
-    const [photo, setPhoto] = useState(avatarUrl ? { uri: avatarUrl } : null);
-    const [uploading, setUploading] = useState(false);
+    const [photo, setPhoto] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const setField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
-
-    const handleUpdate = async () => {
-        // TODO: wire to real API / redux action
-        // form fields + photo?.uri (or photo?.base64) can be sent together, e.g. via FormData
-        //alert(JSON.stringify(form) + " >> " + photo?.uri)
-        setIsSubmitting(true);
-        console.log('Updating profile:', form, photo?.uri);
-        const formData = new FormData();
-
-        formData.append('first_name', form.firstName);
-        formData.append('state', form.lastName);
-        formData.append('mobile_number', form.mobileNumber);
-        //
-        formData.append('city', form.city);
-        formData.append('state', form.state);
-        formData.append('address_line1', form.address_line1);
-        formData.append('address_line2', form.address_line2);
-        formData.append('zip_code', form.zip_code);
-        //
-
-        if (photo?.uri) {
-            formData.append('profile_picture', {
-                uri: photo?.uri,
-                type: 'image/jpeg',
-                name: 'profile.jpg',
-            });
-        }
-
-
-        try {
-            const result = await request(UPDATE_PROFILE_API(), HTTP_METHODS.MULTIPART, formData)
-            alert('Profile Update Successfully!')
-            dispatch(saveUser(result.response.data.data));
-            setIsSubmitting(false);
-
-        } catch (e) {
-            console.log('Login failed status:', e?.response?.status);
-            console.log('Login failed body:', e?.response?.data?.message);
-            alert(e?.response?.data?.message)
-        }
-    };
+    const validationSchema = Yup.object().shape({
+        firstName: Yup.string().trim().required('First name is required'),
+        lastName: Yup.string().trim().required('Last name is required'),
+        mobileNumber: Yup.string()
+            .trim()
+            .matches(/^[0-9]{10}$/, 'Enter a valid 10-digit mobile number')
+            .required('Mobile number is required'),
+        email: Yup.string().trim().email('Enter a valid email address').required('Email is required'),
+        city: Yup.string().trim(),
+        state: Yup.string().trim(),
+        address_line1: Yup.string().trim(),
+        address_line2: Yup.string().trim(),
+        zip_code: Yup.string().trim().matches(/^[0-9]{4,6}$/, 'Enter a valid zip code').notRequired(),
+    });
 
     // ---- Permissions ----
     const requestCameraPermission = async () => {
@@ -401,7 +130,7 @@ const UpdateProfileComponent = () => {
     const handlePickedImage = async (response, source) => {
         if (response.didCancel || response.errorCode) {
             if (response.errorMessage) {
-                Alert.alert('Error', response.errorMessage);
+                showErrorToast(response.errorMessage);
             }
             return;
         }
@@ -410,7 +139,6 @@ const UpdateProfileComponent = () => {
 
         setPhoto({ uri: asset.uri });
 
-        // Save camera captures to the device gallery (optional)
         if (source === 'camera') {
             try {
                 await CameraRoll.save(asset.uri, { type: 'photo' });
@@ -423,7 +151,7 @@ const UpdateProfileComponent = () => {
     const openCamera = async () => {
         const hasPermission = await requestCameraPermission();
         if (!hasPermission) {
-            Alert.alert('Permission required', 'Camera permission is needed to take a photo.');
+            showSuccessToast('Permission required', 'Camera permission is needed to take a photo');
             return;
         }
         const response = await launchCamera(pickerOptions);
@@ -461,280 +189,397 @@ const UpdateProfileComponent = () => {
         }
     };
 
-    // Pair up fields into rows of 2 for wide layout
-    const fieldRows = [];
-    for (let i = 0; i < FIELD_CONFIG.length; i += 2) {
-        fieldRows.push(FIELD_CONFIG.slice(i, i + 2));
-    }
-
-    const renderField = (field) => (
-        <View key={field.key} style={styles.fieldCol}>
-            <Text style={styles.label}>{field.label}</Text>
-            <TextInput
-                style={styles.input}
-                value={form[field.key]}
-                onChangeText={(v) => setField(field.key, v)}
-                keyboardType={field.keyboardType}
-                autoCapitalize={field.key === 'email' ? 'none' : 'sentences'}
-                placeholderTextColor="#999"
-            />
-        </View>
-    );
-
     const initials = `${first_name?.[0] ?? ''}${last_name?.[0] ?? ''}`.toUpperCase() || '?';
 
+    // Pair up fields into rows of 2 for wide layout, keeping "full" fields
+    // (the two address lines) on their own row.
+    const buildRows = () => {
+        const rows = [];
+        let currentPair = [];
+        FIELD_CONFIG.forEach((field) => {
+            if (field.full) {
+                if (currentPair.length) {
+                    rows.push(currentPair);
+                    currentPair = [];
+                }
+                rows.push([field]);
+            } else {
+                currentPair.push(field);
+                if (currentPair.length === 2) {
+                    rows.push(currentPair);
+                    currentPair = [];
+                }
+            }
+        });
+        if (currentPair.length) rows.push(currentPair);
+        return rows;
+    };
+    const breakpoint = getBreakpoint(width);
+    const cardWidth = (() => {
+        if (breakpoint === 'largeTablet') return Math.min(560, width * 0.55);
+        if (breakpoint === 'tablet') return Math.min(500, width * 0.55);
+        return width - 30; // phone: near full width, small margins
+    })();
     return (
-        <View style={{ flex: 1, backgroundColor: '#F4F6F8' }}>
-            {/* Header */}
-            <View style={[styles.header, { paddingTop: insets.top > 0 ? 14 : 14, backgroundColor: '#f3f6fb' }]}>
-                <TouchableOpacity
-                    onPress={() => navigation.goBack()}
-                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                >
-                    <Icon name="arrow-left" size={16} color="black" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Update Profile</Text>
-                <View style={{ width: 20 }} />
-            </View>
-
-            <KeyboardAvoidingView
-                style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+        <KeyboardAvoidingView
+            style={styles.flexOne}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={0}
+        >
+            <ScrollView
+                style={styles.scrollView}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={[
+                    stylesHeader.scrollContent,
+                    { paddingBottom: insets.bottom + 40 },
+                ]}
             >
-                <ScrollView
-                    contentContainerStyle={[
-                        styles.scrollContent,
-                        {
-                            paddingHorizontal: isWideLayout ? 32 : 20,
-                            maxWidth: isWideLayout ? 900 : undefined,
-                            alignSelf: isWideLayout ? 'center' : 'stretch',
-                            width: '100%',
-                        },
-                        { paddingBottom: insets.bottom + 40 },
-                    ]}
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
-                >
-                    {/* Avatar / photo capture section */}
-                    <View style={styles.avatarSection}>
-                        <TouchableOpacity
-                            activeOpacity={0.85}
-                            onPress={handleChangePhoto}
-                            style={[
-                                styles.avatarWrapper,
-                                { width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 },
-                            ]}
-                        >
-                            {photo?.uri || profile_picture ? (
-                                <Image
-                                    source={{ uri: photo?.uri ? photo.uri : `${IMAGE_BASE_URL}/${profile_picture}` }}
-                                    style={{
-                                        width: avatarSize,
-                                        height: avatarSize,
-                                        borderRadius: avatarSize / 2,
-                                    }}
-                                />
-                            ) : (
-                                <View
-                                    style={[
-                                        styles.avatarPlaceholder,
-                                        { width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 },
-                                    ]}
-                                >
-                                    <Text style={[styles.avatarInitials, { fontSize: avatarSize * 0.32 }]}>
-                                        {initials}
-                                    </Text>
-                                </View>
-                            )}
 
-                            <View style={styles.editBadge}>
-                                <Icon name="camera" size={14} color="#fff" />
-                            </View>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity onPress={handleChangePhoto} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                            <Text style={styles.changePhotoText}>Change Photo</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {isWideLayout
-                        ? fieldRows.map((row, rowIndex) => (
-                            <View key={`row-${rowIndex}`} style={styles.fieldRow}>
-                                {row.map(renderField)}
-                                {row.length === 1 && <View style={styles.fieldCol} />}
-                            </View>
-                        ))
-                        : FIELD_CONFIG.map((field) => (
-                            <View key={field.key} style={styles.fieldRowStacked}>
-                                {renderField(field)}
-                            </View>
-                        ))}
-
-                    {/* <View style={[styles.submitRow, !isWideLayout && styles.submitRowStacked]}>
-                        <TouchableOpacity
-                            style={[styles.updateBtn, !isWideLayout && { width: '100%' }]}
-                            onPress={handleUpdate}
-                            activeOpacity={0.85}
-                        >
-                            <Text style={styles.updateBtnText}>UPDATE NOW</Text>
-                        </TouchableOpacity>
-                    </View> */}
-                    <LinearGradient
+                {/* Header band with back arrow, replacing the old AppHeader bar */}
+                {/* <LinearGradient
                         colors={['#1a73e8', '#3562a6']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
-                        style={{ borderRadius: 10, paddingVertical: 8 }}
+                        style={styles.headerBand}
                     >
-                        <Button
-                            mode="contained"
-                            onPress={handleUpdate}
-                            loading={isSubmitting}
-                            style={styles.loginButton}
-                            contentStyle={styles.loginButtonContent}
+                        <TouchableOpacity
+                            onPress={() => navigation.goBack()}
+                            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                            style={{ position: 'absolute', top: layout.cardPadding, left: layout.gap, zIndex: 3 }}
                         >
-                            UPDATE NOW
-                        </Button>
-                    </LinearGradient>
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </View>
+                            <Icon name="chevron-left" size={18} color="#ffffff" />
+                        </TouchableOpacity>
+                        <Text style={styles.title}>Update Profile</Text>
+                        <Text style={styles.subtitle}>
+                            Keep your account details up to date
+                        </Text>
+                    </LinearGradient> */}
+                {/* <LinearGradient
+                    colors={['#6B9FE4', "#6B9FE4"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[stylesHeader.headerBand, { paddingTop: insets.top + 18, borderRadius: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0, }]}
+                >
+                    <View style={[stylesHeader.headerRow, { flexDirection: 'column' }]}>
+                        <TouchableOpacity
+                            onPress={() => navigation.goBack()}
+                            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                            style={{ position: 'absolute', top: layout.cardPadding, left: layout.gap, zIndex: 3 }}
+                        >
+                            <Icon name="chevron-left" size={18} color="#ffffff" />
+                        </TouchableOpacity>
+                        <Text style={styles.title}>Update Profile</Text>
+                        <Text style={styles.subtitle}>
+                            Keep your account details up to date
+                        </Text>
+                    </View>
+                </LinearGradient> */}
+                <LinearGradient
+                    colors={['#6B9FE4', "#6B9FE4"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[stylesHeader.headerBand, { paddingTop: insets.top + 18, borderRadius: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0, }]}
+                >
+                    <View style={[stylesHeader.headerRow]}>
+                        <TouchableOpacity
+                            onPress={() => navigation.goBack()}
+                            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                            style={stylesHeader.headerIconBtn}
+                        >
+                            <Icon name="chevron-left" size={16} color="#fff" />
+                        </TouchableOpacity>
+                        <View style={{ flex: 1, alignItems: "flex-start", marginLeft: 10 }}>
+                            <Text style={styles.title}>Update Profile</Text>
+                            <Text style={styles.subtitle}>
+                                Keep your account details up to date
+                            </Text>
+                        </View>
+                    </View>
+                </LinearGradient>
+
+                {/* Avatar circle, straddling the header/body seam — replaces the
+                        static app logo used on Login/ForgotPassword/OTP with the
+                        user's own photo, plus a camera badge to change it. */}
+
+
+                <View style={[stylesHeader.card, { width: '75%' }]}>
+                    {/* White body: form */}
+                    <View style={styles.formPane}>
+                        <Formik
+                            initialValues={{
+                                firstName: first_name,
+                                lastName: last_name,
+                                mobileNumber: mobile_number,
+                                email: email,
+                                city: city,
+                                state: state,
+                                address_line1: address_line1,
+                                address_line2: address_line2,
+                                zip_code: zip_code,
+                            }}
+                            validationSchema={validationSchema}
+                            validateOnChange={true}
+                            validateOnBlur={true}
+                            onSubmit={async (values, { setSubmitting }) => {
+                                setSubmitting(true);
+                                setIsSubmitting(true);
+                                const formData = new FormData();
+                                formData.append('first_name', values.firstName);
+                                formData.append('last_name', values.lastName);
+                                formData.append('mobile_number', values.mobileNumber);
+                                formData.append('email', values.email);
+                                formData.append('city', values.city);
+                                formData.append('state', values.state);
+                                formData.append('address_line1', values.address_line1);
+                                formData.append('address_line2', values.address_line2);
+                                formData.append('zip_code', values.zip_code);
+
+                                if (photo?.uri) {
+                                    formData.append('profile_picture', {
+                                        uri: photo.uri,
+                                        type: 'image/jpeg',
+                                        name: 'profile.jpg',
+                                    });
+                                }
+
+                                try {
+                                    const result = await request(UPDATE_PROFILE_API(), HTTP_METHODS.MULTIPART, formData);
+                                    dispatch(saveUser(result.response.data.data));
+                                    showSuccessToast('', 'Profile updated successfully');
+                                    navigation.goBack()
+                                } catch (e) {
+                                    console.log('Update profile failed status:', e?.response?.status);
+                                    console.log('Update profile failed body:', e?.response?.data?.message);
+                                    showErrorToast(e?.response?.data?.message || 'Could not update profile. Please try again.');
+                                } finally {
+                                    setSubmitting(false);
+                                    setIsSubmitting(false);
+                                }
+                            }}
+                        >
+                            {({
+                                handleChange,
+                                handleSubmit,
+                                values,
+                                errors,
+                                touched,
+                            }) => (
+                                <>
+                                    {isWideLayout ? (
+                                        <>
+                                            <TouchableOpacity
+                                                activeOpacity={0.85}
+                                                onPress={handleChangePhoto}
+                                                style={styles.logoCircleWrap}
+                                            >
+                                                {photo?.uri || profile_picture ? (
+                                                    <Image
+                                                        source={{ uri: photo?.uri ? photo.uri : `${IMAGE_BASE_URL}/${profile_picture}` }}
+                                                        style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }}
+                                                    />
+                                                ) : (
+                                                    <Text style={{ fontSize: avatarSize * 0.4, fontWeight: '700', color: '#1a73e8' }}>
+                                                        {initials}
+                                                    </Text>
+                                                )}
+                                                <View
+                                                    style={{
+                                                        position: 'absolute',
+                                                        bottom: -2,
+                                                        right: -2,
+                                                        width: 28,
+                                                        height: 28,
+                                                        borderRadius: 14,
+                                                        backgroundColor: '#1a73e8',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        borderWidth: 2,
+                                                        borderColor: '#ffffff',
+                                                    }}
+                                                >
+                                                    <Icon name="camera" size={12} color="#ffffff" />
+                                                </View>
+                                            </TouchableOpacity>
+
+                                            <View style={[styles.fieldsGrid, { paddingTop: 15 }]}>
+
+                                                {FIELD_CONFIG.map((field) => (
+                                                    <View
+                                                        key={field.key}
+                                                        style={field.full ? styles.fieldWrapFull : styles.fieldWrap}
+                                                    >
+
+                                                        <CustomTextInput
+                                                            leftIcon={field.leftIcon}
+                                                            placeholder={field.label}
+                                                            value={values[field.key]}
+                                                            onChangeText={handleChange(field.key)}
+                                                            maxLength={field.key === 'mobileNumber' ? 10 : undefined}
+                                                            keyboardType={field.keyboardType}
+                                                            autoCapitalize={field.key === 'email' ? 'none' : 'sentences'}
+                                                            error={touched[field.key] && !!errors[field.key]}
+                                                            errorText={errors[field.key]}
+                                                            inputStyle={styles.input}
+                                                            outlineStyle={{ borderRadius: 10, backgroundColor: '#f4f4f4' }}
+                                                            outlineColor="#e2eaf4"
+                                                            activeOutlineColor="#eef3fb"
+                                                        />
+                                                    </View>
+                                                ))}
+                                            </View>
+                                        </>
+                                    ) : (
+                                        FIELD_CONFIG.map((field) => (
+                                            <View key={field.key} style={styles.fieldWrapFull}>
+                                                <CustomTextInput
+                                                    leftIcon={field.leftIcon}
+                                                    placeholder={field.label}
+                                                    value={values[field.key]}
+                                                    onChangeText={handleChange(field.key)}
+                                                    keyboardType={field.keyboardType}
+                                                    autoCapitalize={field.key === 'email' ? 'none' : 'sentences'}
+                                                    error={touched[field.key] && !!errors[field.key]}
+                                                    errorText={errors[field.key]}
+                                                    inputStyle={styles.input}
+                                                    outlineStyle={{ borderRadius: 10, backgroundColor: '#f4f4f4' }}
+                                                    outlineColor="#e2eaf4"
+                                                    activeOutlineColor="#eef3fb"
+                                                />
+                                            </View>
+                                        ))
+                                    )}
+
+                                    <LinearGradient
+                                        colors={['#1a73e8', '#3562a6']}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 1 }}
+                                        style={styles.buttonGradient}
+                                    >
+                                        <Button
+                                            mode="contained"
+                                            onPress={handleSubmit}
+                                            loading={isSubmitting}
+                                            style={styles.primaryButton}
+                                            contentStyle={styles.primaryButtonContent}
+                                        >
+                                            UPDATE NOW
+                                        </Button>
+                                    </LinearGradient>
+                                </>
+                            )}
+                        </Formik>
+                    </View>
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 };
+const stylesHeader = StyleSheet.create({
+    screen: { flex: 1, backgroundColor: '#F4F6F8' },
+    scrollContent: {
+        flexGrow: 1,
+        alignItems: 'center',
+    },
 
-const styles = StyleSheet.create({
-    header: {
+    // ---- Header band ----
+    headerBand: {
+        width: '100%',
+        paddingHorizontal: 16,
+        paddingBottom: 56,
+        borderBottomLeftRadius: 28,
+        borderBottomRightRadius: 28,
+    },
+    headerRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: colors.ICON_COLOR_PRIMARY,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
+    },
+    headerIconBtn: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        backgroundColor: 'rgba(255,255,255,0.18)',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     headerTitle: {
-        flex: 1,
-        color: 'black',
-        fontSize: 19,
-        fontWeight: '500',
-        fontFamily: fonts.POPPINS_REGULAR,
-        marginLeft: 20,
-    },
-
-    scrollContent: {
-        paddingTop: 28,
-    },
-
-    avatarSection: {
-        alignItems: 'center',
-        marginBottom: 28,
-    },
-    avatarWrapper: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#E4E7EB',
-    },
-    avatarPlaceholder: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#DCE6F5',
-    },
-    avatarInitials: {
-        color: colors.ICON_COLOR_PRIMARY,
+        fontSize: 17,
         fontWeight: '700',
-    },
-    editBadge: {
-        position: 'absolute',
-        bottom: 2,
-        right: 2,
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        backgroundColor: colors.ICON_COLOR_PRIMARY,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 2,
-        borderColor: '#fff',
-    },
-    changePhotoText: {
-        marginTop: 10,
-        fontSize: 14,
-        color: colors.ICON_COLOR_PRIMARY,
-        fontFamily: fonts.POPPINS_REGULAR,
-        fontWeight: '500',
-    },
-
-    fieldRow: {
-        flexDirection: 'row',
-        gap: 24,
-        marginBottom: 22,
-    },
-    fieldRowStacked: {
-        marginBottom: 18,
-    },
-    fieldCol: {
-        flex: 1,
-    },
-    fieldFullWidth: {
-        marginTop: 6,
-        marginBottom: 28,
-    },
-
-    label: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 8,
+        color: '#fff',
         fontFamily: fonts.POPPINS_REGULAR,
     },
-    input: {
+
+    // ---- Card ----
+    card: {
         backgroundColor: '#fff',
-        borderRadius: 8,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        fontSize: 16,
-        color: '#222',
-        borderWidth: 1,
-        borderColor: '#E4E7EB',
-    },
-    addressInput: {
-        height: 160,
-        paddingTop: 14,
-    },
-
-    submitRow: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-    },
-    submitRowStacked: {
-        justifyContent: 'center',
-    },
-    updateBtn: {
-        backgroundColor: colors.ICON_COLOR_PRIMARY,
-        paddingVertical: 16,
-        paddingHorizontal: 40,
-        borderRadius: 8,
+        borderRadius: 16,
         alignItems: 'center',
-        elevation: 2,
+        paddingHorizontal: 16,
+        paddingBottom: 24,
+        marginTop: -32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 4,
+    },
+    avatarWrap: {
+        alignSelf: 'center',
+        marginBottom: 12,
+        backgroundColor: '#9fb8dd',
+        borderWidth: 3,
+        borderColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.15,
         shadowRadius: 4,
+        elevation: 3,
     },
-    updateBtnText: {
-        color: '#fff',
-        fontSize: 15,
+    name: {
+        textAlign: 'center',
+        color: '#1a1a1a',
         fontWeight: '700',
-        letterSpacing: 0.5,
+        fontFamily: fonts.POPPINS_REGULAR,
     },
-    loginButton: {
+    email: {
+        textAlign: 'center',
+        color: '#8a8f98',
+        marginTop: 4,
+        marginBottom: 22,
+        fontFamily: fonts.POPPINS_REGULAR,
+    },
+
+    infoList: { width: '100%', paddingBottom: 6, gap: 12 },
+    infoCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f9fafb',
+        borderRadius: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        gap: 8,
+    },
+    infoTextWrap: { flex: 1 },
+    infoLabel: { color: '#8a8f98', marginBottom: 0, fontFamily: fonts.POPPINS_REGULAR },
+    infoValue: { color: '#1a1a1a', fontWeight: '600' },
+
+    buttonGradient: {
         width: '100%',
         borderRadius: 10,
-        backgroundColor: 'transparent'
+        paddingVertical: 8,
+        marginTop: 24,
     },
-    loginButtonContent: {
+    primaryButton: {
+        borderRadius: 10,
+        backgroundColor: 'transparent',
+    },
+    primaryButtonContent: {
+        paddingVertical: 4,
     },
 });
-
 export default UpdateProfileComponent;
 export { UpdateProfileComponent };

@@ -6,7 +6,6 @@ import {
     TouchableOpacity,
     FlatList,
     StyleSheet,
-    Image,
     useWindowDimensions,
     ActivityIndicator
 } from 'react-native';
@@ -15,11 +14,10 @@ import { Menu } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import colors from '../../assets/appColor/colors';
 import fonts from '../../assets/fonts/fonts';
-import ExpandableFab from '../../component/ExpandableFab';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCategories, fetchHospitals, fetchLabels, fetchAppointment } from '../addDoctor/hospitalThunks';
-import { IMAGE_BASE_URL } from '../../services/api-end-points';
-import { TextInput as TextInputPaper } from 'react-native-paper';
+import AppHeader from '../../component/AppHeader';
+import AppointmentActionIcons from '../../component/AppointmentActionIcons';
 
 const STATUS_COLORS = {
     scheduled: '#268872',
@@ -108,6 +106,27 @@ const TodayComponent = () => {
         const date = d instanceof Date ? d : new Date(d);
         return d ? date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
     };
+
+    const handleEdit = (item) => {
+        // TODO: navigate to edit screen with item
+        navigation.navigate('EditAppointment', item)
+    };
+
+    const handleDelete = (item) => {
+        // TODO: confirm + delete
+
+        navigation.navigate('ConfirmModal', {
+            title: 'Cancel',
+            messageTemplate: "Are you sure to cancel {item} ?",
+            itemName: 'Appointment',
+            onConfirm: () => {
+                setTimeout(() => {
+                    navigation.navigate('CancelReason', item);
+                }, 100);
+            },
+        })
+    };
+    
     const renderTableHeader = () => (
         <View style={styles.tableHeaderRow}>
             <Text style={[styles.headerCell, { flex: 1.3 }]}>Dr. Name</Text>
@@ -120,29 +139,55 @@ const TodayComponent = () => {
 
     const StatusBadge = ({ status }) => (
         <View style={[styles.badge, { backgroundColor: (STATUS_COLORS[status] || '#999') + '22' }]}>
-            <Text style={[styles.badgeText, { color: STATUS_COLORS[status] || '#999' }]}>{status}</Text>
+            <Text style={[styles.badgeText, { color: STATUS_COLORS[status] || '#999' }]}>{capitalizeFirstLetter(status)}</Text>
         </View>
     );
 
+    const capitalizeFirstLetter = (text) => {
+        if (!text) return '';
+        return text.charAt(0).toUpperCase() + text.slice(1);
+    };
+    const formatTime = (time) => {
+        const [hours, minutes] = time.split(':');
+        const date = new Date();
+
+        date.setHours(Number(hours), Number(minutes));
+
+        return date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        });
+    };
     const renderTableRow = ({ item }) => {
         //const { datePart, timePart } = splitDateTime(item.appointment_at);
         return (
             <View style={styles.tableRow}>
                 <Text style={[styles.cell, { flex: 1.3 }]} numberOfLines={1}>{item.doctor_name}</Text>
                 <Text style={[styles.cell, { flex: 1.2 }]}>{formatDateForRow(item.appointment_at)}</Text>
-                <Text style={[styles.cell, { flex: 1 }]}>{formatTimeForRow(item.appointment_at)}</Text>
+                {/* <Text style={[styles.cell, { flex: 1 }]}>{formatTimeForRow(item.appointment_at)}</Text> */}
+                <Text style={[styles.cell, { flex: 1 }]}>{formatTime(formatTimeForRow(item.appointment_at))}</Text>
                 <View style={{ flex: 0.9 }}><StatusBadge status={item.status} /></View>
-                <View style={{ flex: 0.8, flexDirection: 'row', justifyContent: 'flex-end' }}>
+                <View style={{ flex: 1.1, alignItems: 'flex-end' }}>
+                    <AppointmentActionIcons
+                        onEdit={() => handleEdit(item)}
+                        onClose={() => handleDelete(item)}
+                        //onDelete={() => handleDelete(item)}
+                        isDeleteDisable={item.status === 'cancelled'}
+                        isEditDisable={item.status === 'cancelled'}
+                    />
+                </View>
+                {/* <View style={{ flex: 0.8, flexDirection: 'row', justifyContent: 'flex-end' }}>
                     {/* <TouchableOpacity style={styles.iconBtn}>
                         <Icon name="eye" size={16} color="#3DC2FF" />
                     </TouchableOpacity> */}
-                    {
+                 {/*   {
                         !(item.status === 'cancelled') &&
                         <TouchableOpacity onPress={() => { navigation.navigate('EditAppointment', item) }} style={styles.iconBtn}>
                             <Icon name="pencil" size={15} color="#268872" />
                         </TouchableOpacity>
                     }
-                </View>
+                </View> */}
             </View>
         )
     };
@@ -159,13 +204,18 @@ const TodayComponent = () => {
                     <Icon name="calendar" size={12} color="#888" />
                     <Text style={styles.cardMetaText}>{formatDateForRow(item.appointment_at)}</Text>
                     <Icon name="clock-o" size={12} color="#888" style={{ marginLeft: 14 }} />
-                    <Text style={styles.cardMetaText}>{formatTimeForRow(item.appointment_at)}</Text>
+                    <Text style={styles.cardMetaText}>{formatTime(formatTimeForRow(item.appointment_at))}</Text>
                 </View>
-                <View style={styles.cardActionsRow}>
-                    {/* <TouchableOpacity onPress={() => { alert('test2') }} style={styles.cardActionBtn}>
-                        <Icon name="eye" size={13} color="#3DC2FF" />
-                        <Text style={[styles.cardActionText, { color: '#3DC2FF' }]}>View</Text>
-                    </TouchableOpacity> */}
+                <View style={{ marginTop: 12 }}>
+                    <AppointmentActionIcons
+                        onEdit={() => handleEdit(item)}
+                        onClose={() => handleDelete(item)}
+                        //onDelete={() => handleDelete(item)}
+                        isDeleteDisable={item.status === 'cancelled'}
+                        isEditDisable={item.status === 'cancelled'}
+                    />
+                </View>
+                {/* <View style={styles.cardActionsRow}>
                     {
                         !(item.status === 'cancelled') &&
                         <TouchableOpacity onPress={() => { navigation.navigate('EditAppointment', item) }} style={styles.cardActionBtn}>
@@ -173,18 +223,19 @@ const TodayComponent = () => {
                             <Text onPress={() => { navigation.navigate('EditAppointment', item) }} style={[styles.cardActionText, { color: '#268872' }]}>Edit</Text>
                         </TouchableOpacity>
                     }
-                </View>
+                </View> */}
             </View>
         )
     };
 
     useEffect(() => {
-        Promise.allSettled([
-            dispatch(fetchCategories()),
-            dispatch(fetchHospitals()),
-            dispatch(fetchLabels()),
-            dispatch(fetchAppointment()),
-        ])
+        // Promise.allSettled([
+        //     dispatch(fetchCategories()),
+        //     dispatch(fetchHospitals()),
+        //     dispatch(fetchLabels()),
+        //     dispatch(fetchAppointment()),
+        // ])
+        dispatch(fetchAppointment())
     }, [])
 
     const isLoading = loading.category || loading.hospitals || loading.lables || loading.appointment;
@@ -198,11 +249,15 @@ const TodayComponent = () => {
         );
     else
         return (
-            <View style={{ flex: 1, backgroundColor: colors.WHITE_COLOR }}>
+            <View style={{ flex: 1, backgroundColor: '#F4F6F8' }}>
                 {/* Top app bar */}
-                <View style={styles.header}>
+                {/* <View style={styles.header}>
                     <TouchableOpacity onPress={openDrawer} hitSlop={{ top: 12, left: 12, right: 12, bottom: 12 }}>
-                        <Icon name="bars" size={20} color="black" />
+                        <Icon name="bars" size={20} color="white" />
+                        <GradientIconBadge
+                            colors={['#4A7EC7', '#6B9FE4']}
+                            iconName="pills"
+                        />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle} numberOfLines={1}>Konsyl Pharmaceuticals</Text>
                     <TouchableOpacity onPress={() => { navigation.navigate('myProfile') }}>
@@ -217,7 +272,14 @@ const TodayComponent = () => {
                                 </View>
                         }
                     </TouchableOpacity>
-                </View>
+                </View> */}
+                <AppHeader
+                    title="Today's Appointment"
+                    onLeftPress={() => navigation.goBack()}
+                    leftIconName="chevron-left"
+                    rightType="none"
+                    onRightPress={() => navigation.navigate('myProfile')}
+                />
 
                 <FlatList
                     data={pageData}
@@ -303,14 +365,14 @@ const TodayComponent = () => {
                         </View>
                     }
                 />
-                <ExpandableFab
+                {/* <ExpandableFab
                     mainColor={colors.ICON_COLOR_PRIMARY}
                     actions={[
                         { label: 'Add Appointment', icon: 'plus', color: '#D2434B', onPress: () => { navigation.navigate('AddAppointment') } },
                         { label: 'Add Label', icon: 'plus', color: '#FCCE3B', onPress: () => { navigation.navigate('AddLabel') } },
                         { label: 'Add Hospital', icon: 'plus', color: '#55D88A', onPress: () => { navigation.navigate('addDoctor') } },
                     ]}
-                />
+                /> */}
             </View>
         );
 };
@@ -319,19 +381,19 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.WHITE_COLOR,
+        backgroundColor: '#6B9FE4',
         paddingHorizontal: 16,
         paddingVertical: 14,
         gap: 16,
     },
     headerTitle: {
         flex: 1,
-        color: 'black',
+        color: 'white',
         fontSize: 18,
         fontWeight: '700',
         fontFamily: fonts.POPPINS_REGULAR,
     },
-    avatar: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: 'black' },
+    avatar: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: 'white' },
 
     listContent: { paddingBottom: 100, paddingTop: 16 },
 
@@ -348,7 +410,7 @@ const styles = StyleSheet.create({
     searchWrap: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F2F2F2',
+        backgroundColor: 'white',
         borderRadius: 8,
         paddingHorizontal: 12,
         height: 42,

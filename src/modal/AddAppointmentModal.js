@@ -24,25 +24,22 @@ import { CREATE_APPOINTMENT_API } from '../services/api-end-points';
 import { request } from '../services/services';
 import { HTTP_METHODS } from '../services/api-constants';
 import { fetchAppointment } from '../screens/addDoctor/hospitalThunks';
-
-// const MOCK_DOCTORS = [
-//     'Dr. Sarah Mitchell', 'Dr. James Carter', 'Dr. Emily Chen',
-//     'Dr. Michael Brown', 'Dr. Priya Nair', 'Dr. Robert Lee',
-// ];
+import { showErrorToast, showSuccessToast } from '../utils/Toastutils';
 
 const formatTime = (d) =>
     d ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-const formatDate = (d) =>
-    d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
 
 // --- Responsive helpers -----------------------------------------------
 // Base reference width = 375 (iPhone SE / standard small phone)
 const BASE_WIDTH = 375;
 
-const getBreakpoint = (width) => {
-    if (width >= 900) return 'largeTablet'; // iPad Pro / landscape iPad
-    if (width >= 600) return 'tablet';       // iPad mini/portrait, Android tablets
-    return 'phone';                          // all phones, iOS & Android
+// Classify device by its SHORTER dimension so rotating a phone to
+// landscape doesn't accidentally make it look like a tablet (which
+// would change card sizing rules unexpectedly).
+const getBreakpoint = (shortestSide) => {
+    if (shortestSide >= 900) return 'largeTablet'; // big iPad, either orientation
+    if (shortestSide >= 600) return 'tablet';       // iPad mini / Android tablet
+    return 'phone';                                  // all phones, iOS & Android
 };
 
 // Clamped scale factor so text/padding never blow up on huge tablets
@@ -52,6 +49,13 @@ const scale = (width, size) => {
     const clamped = Math.min(Math.max(factor, 0.9), 1.25);
     return Math.round(size * clamped);
 };
+
+// Fixed-ish estimates used only to size the internal ScrollView so it
+// has a real, bounded height to scroll within (RN needs this - a
+// ScrollView with only `maxHeight` on its parent and no bounded height
+// of its own will render at full content height and get clipped).
+const HEADER_HEIGHT = 58;
+const FOOTER_HEIGHT = 68;
 // ------------------------------------------------------------------------
 
 const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
@@ -63,7 +67,9 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
     const { width, height } = useWindowDimensions();
     const insets = useSafeAreaInsets();
 
-    const breakpoint = getBreakpoint(width);
+    const isLandscape = width > height;
+    const shortestSide = Math.min(width, height);
+    const breakpoint = getBreakpoint(shortestSide);
     const isTabletWidth = breakpoint !== 'phone';
 
     const [doctorName, setDoctorName] = useState('');
@@ -92,8 +98,32 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
         onClose ? onClose() : navigation.goBack();
     };
 
-    const handleDone = async () => {
+    function formatDate(isoString) {
+        const date = new Date(isoString);
 
+        // Add 5 hours 30 minutes (in milliseconds)
+        const istOffsetMs = (5 * 60 + 30) * 60 * 1000;
+        const istDate = new Date(date.getTime() + istOffsetMs);
+
+        const pad = (num) => String(num).padStart(2, '0');
+
+        const year = istDate.getUTCFullYear();
+        const month = pad(istDate.getUTCMonth() + 1);
+        const day = pad(istDate.getUTCDate());
+        const hours = pad(istDate.getUTCHours());
+        const minutes = pad(istDate.getUTCMinutes());
+        const seconds = pad(istDate.getUTCSeconds());
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    // Human-readable display date (kept separate from the API formatter above,
+    // which the original file re-used - that was fine for the payload but this
+    // is what actually renders in the "Select date" field).
+    const formatDisplayDate = (d) =>
+        d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+
+    const handleDone = async () => {
         try {
             const result = formatDate(appointmentDate);
             await request(CREATE_APPOINTMENT_API(), HTTP_METHODS.POST, JSON.stringify({
@@ -102,10 +132,10 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
                 "purpose": labelDiscription
             }))
             dispatch(fetchAppointment())
-            alert('Appointment Create Successfully!')
+            showSuccessToast('', 'Appointment Create Successfully!')
             resetForm();
         } catch (e) {
-            alert(e?.response?.data?.message)
+            showErrorToast(e?.response?.data?.message)
         } finally {
             navigation.goBack()
         }
@@ -135,39 +165,56 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
         }
     };
 
-    // Card sizing: percentage/clamped width so it behaves correctly from a
-    // 360dp Android phone up through a 1024pt+ iPad Pro landscape.
+    // --- Sizing -----------------------------------------------------------
+    // How much vertical room we actually have, after safe areas + a small
+    // outer margin so the card never touches the status/nav bars - this is
+    // what was missing before, so on short landscape screens the card
+    // (and the picker/description field inside it) had nowhere to go.
+    const outerMargin = 24;
+    const availableHeight = Math.max(
+        220,
+        height - insets.top - insets.bottom - outerMargin
+    );
+
     const cardStyle = (() => {
         if (breakpoint === 'largeTablet') {
-            return { width: Math.min(560, width * 0.45), maxHeight: height * 0.85 };
+            return {
+                width: Math.min(560, width * 0.45),
+                maxHeight: Math.min(availableHeight, height * 0.85),
+            };
         }
         if (breakpoint === 'tablet') {
-            return { width: Math.min(560, width * 0.6), maxHeight: height * 0.85 };
+            return {
+                width: Math.min(560, width * 0.6),
+                maxHeight: Math.min(availableHeight, height * 0.85),
+            };
         }
-        // phone (iOS + Android)
-        return { width: width - 32, maxHeight: height * 0.88 };
+        // phone
+        if (isLandscape) {
+            // Don't stretch edge-to-edge on a wide, short landscape phone -
+            // a centered, capped-width dialog reads much better and leaves
+            // more of the limited height for content instead of chrome.
+            return {
+                width: Math.min(560, width * 0.78),
+                maxHeight: availableHeight,
+            };
+        }
+        return { width: width - 32, maxHeight: availableHeight };
     })();
 
+    // Real, bounded height for the scrollable body so RN can actually
+    // scroll it instead of overflowing past the card and getting clipped.
+    const scrollMaxHeight = Math.max(
+        90,
+        (cardStyle.maxHeight ?? availableHeight) - HEADER_HEIGHT - FOOTER_HEIGHT
+    );
+
     const fontScale = (size) => scale(width, size);
-    
-    function formatDate(isoString) {
-        const date = new Date(isoString);
 
-        // Add 5 hours 30 minutes (in milliseconds)
-        const istOffsetMs = (5 * 60 + 30) * 60 * 1000;
-        const istDate = new Date(date.getTime() + istOffsetMs);
+    // Fields always stack vertically - no side-by-side row layout on
+    // tablets or in landscape, per request.
+    const descriptionHeight = isLandscape && !isTabletWidth ? 56 : 80;
 
-        const pad = (num) => String(num).padStart(2, '0');
-
-        const year = istDate.getUTCFullYear();
-        const month = pad(istDate.getUTCMonth() + 1);
-        const day = pad(istDate.getUTCDate());
-        const hours = pad(istDate.getUTCHours());
-        const minutes = pad(istDate.getUTCMinutes());
-        const seconds = pad(istDate.getUTCSeconds());
-
-        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    }
     return (
         <Modal
             visible={visible}
@@ -191,13 +238,16 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Scrollable body so nothing gets clipped on small phones
-                        when the dropdown + a picker are open at the same time */}
+                    {/* Scrollable body - given a real bounded height (not just
+                        flexGrow:0) so it scrolls properly instead of getting
+                        clipped when there isn't enough vertical space, which
+                        is exactly what happened in landscape before. */}
                     <ScrollView
-                        style={styles.bodyScroll}
+                        style={[styles.bodyScroll, { maxHeight: scrollMaxHeight }]}
                         contentContainerStyle={styles.body}
                         keyboardShouldPersistTaps="handled"
                         showsVerticalScrollIndicator={false}
+                        nestedScrollEnabled
                     >
                         {/* Doctor select */}
                         <Text style={[styles.label, { fontSize: fontScale(13) }]}>Doctor Name</Text>
@@ -223,8 +273,8 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
                             <View style={styles.doctorDropdown}>
                                 <FlatList
                                     data={hospitalData}
-                                    keyExtractor={(d) => d}
-                                    style={{ maxHeight: Math.min(200, height * 0.3) }}
+                                    keyExtractor={(d, idx) => d?.id?.toString?.() ?? String(idx)}
+                                    style={{ maxHeight: Math.min(180, scrollMaxHeight * 0.4) }}
                                     nestedScrollEnabled
                                     renderItem={({ item }) => (
                                         <TouchableOpacity
@@ -239,8 +289,9 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
                             </View>
                         )}
 
-                        {/* Time + Date row: always stack on phones, side-by-side on tablets */}
-                        <View style={[styles.rowFields, !isTabletWidth && styles.rowFieldsStacked]}>
+                        {/* Time + Date + Reason - always stacked vertically,
+                            on every device and orientation. */}
+                        <View style={[styles.rowFields, styles.rowFieldsStacked]}>
                             <View style={styles.fieldCol}>
                                 <Text style={[styles.label, { fontSize: fontScale(13) }]}>Appointment Time</Text>
                                 <TouchableOpacity
@@ -264,7 +315,7 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
                                 >
                                     <Icon name="calendar" size={17} color="#777" />
                                     <Text style={[styles.fieldText, { fontSize: fontScale(14) }, !appointmentDate && styles.placeholderText]}>
-                                        {appointmentDate ? formatDate(appointmentDate) : 'Select date'}
+                                        {appointmentDate ? formatDisplayDate(appointmentDate) : 'Select date'}
                                     </Text>
                                 </TouchableOpacity>
                             </View>
@@ -272,7 +323,7 @@ const AddAppointmentModal = ({ visible, onClose, onSubmit }) => {
                             <View style={styles.fieldCol}>
                                 <Text style={[styles.label, { fontSize: fontScale(13) }]}>Reason</Text>
                                 <TextInput
-                                    style={[styles.input, styles.addressInput]}
+                                    style={[styles.input, styles.addressInput, { height: descriptionHeight }]}
                                     value={labelDiscription}
                                     onChangeText={(v) => setLabelDiscription(v)}
                                     multiline
