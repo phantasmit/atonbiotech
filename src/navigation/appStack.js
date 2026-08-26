@@ -16,6 +16,11 @@ import { OfferComponent } from '../screens/offers/offerComponent';
 import { ContactUsComponent } from '../screens/contactUs/contactUsComponent';
 import { WebPageComponent } from '../screens/webPage/webPageComponent';
 import { UpdatePasswordComponent } from '../screens/updatePassword/updatePasswordComponent';
+import { TodayComponent } from '../screens/today/todayComponent';
+import { TomorrowComponent } from '../screens/tomorrow/tomorrowComponent';
+import { AllAppointmentComponent } from '../screens/allAppointment/allAppointmentComponent';
+import ProductImageGallery from '../screens/gallaryScreen/Productimagegallery';
+
 //
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -90,6 +95,11 @@ const AppStack = () => {
                 <Stack.Screen name="contactUs" component={ContactUsComponent} />
                 <Stack.Screen name="webPage" component={WebPageComponent} />
                 <Stack.Screen name="updatePassword" component={UpdatePasswordComponent} />
+                <Stack.Screen name="Today" component={TodayComponent} />
+                <Stack.Screen name="Tomorrow" component={TomorrowComponent} />
+                <Stack.Screen name="AllAppointment" component={AllAppointmentComponent} />
+                <Stack.Screen name="ProductImageGallery" component={ProductImageGallery} />
+
             </Stack.Group>
             {
                 ModalStack(Stack)

@@ -9,9 +9,7 @@ import {
     Image,
     RefreshControl,
     ActivityIndicator,
-    Modal,
-    useWindowDimensions,
-    Platform,
+    useWindowDimensions
 } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -48,8 +46,6 @@ const AddCategoryComponent = () => {
     useEffect(() => () => { isMountedRef.current = false; }, []);
 
     useEffect(() => {
-        // set Initial data if any available 
-        //alert(JSON.stringify(categoryData))
         setAllItems(categoryData)
     }, [categoryData]);
 

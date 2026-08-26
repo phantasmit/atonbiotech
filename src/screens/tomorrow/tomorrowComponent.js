@@ -23,6 +23,7 @@ import { CANCEL_APPOINTMENT_API, IMAGE_BASE_URL } from '../../services/api-end-p
 import { request } from '../../services/services';
 import { fetchAppointment } from '../addDoctor/hospitalThunks';
 import { HTTP_METHODS } from '../../services/api-constants';
+import AppHeader from '../../component/AppHeader';
 
 // ---------- Mock data ----------
 // const DOCTOR_NAMES = [
@@ -149,7 +150,7 @@ const TomorrowComponent = () => {
 
     const StatusBadge = ({ status }) => (
         <View style={[styles.badge, { backgroundColor: (STATUS_COLORS[status] || '#999') + '22' }]}>
-            <Text style={[styles.badgeText, { color: STATUS_COLORS[status] || '#999' }]}>{status}</Text>
+            <Text style={[styles.badgeText, { color: STATUS_COLORS[status] || '#999' }]}>{capitalizeFirstLetter(status)}</Text>
         </View>
     );
 
@@ -190,13 +191,32 @@ const TomorrowComponent = () => {
         </View>
     );
 
+
+    const capitalizeFirstLetter = (text) => {
+        if (!text) return '';
+        return text.charAt(0).toUpperCase() + text.slice(1);
+    };
+    const formatTime = (time) => {
+        const [hours, minutes] = time.split(':');
+        const date = new Date();
+
+        date.setHours(Number(hours), Number(minutes));
+
+        return date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        });
+    };
+
     const renderTableRow = ({ item }) => {
         //const { datePart, timePart } = splitDateTime(item.appointment_at);
         return (
             <View style={styles.tableRow}>
                 <Text style={[styles.cell, { flex: 1.3 }]} numberOfLines={1}>{item.doctor_name}</Text>
                 <Text style={[styles.cell, { flex: 1.2 }]}>{formatDateForRow(item.appointment_at)}</Text>
-                <Text style={[styles.cell, { flex: 1 }]}>{formatTimeForRow(item.appointment_at)}</Text>
+                {/* <Text style={[styles.cell, { flex: 1 }]}>{formatTimeForRow(item.appointment_at)}</Text> */}
+                <Text style={[styles.cell, { flex: 1 }]}>{formatTime(formatTimeForRow(item.appointment_at))}</Text>
                 <View style={{ flex: 0.9 }}><StatusBadge status={item.status} /></View>
                 <View style={{ flex: 1.1, alignItems: 'flex-end' }}>
                     <AppointmentActionIcons
@@ -223,7 +243,7 @@ const TomorrowComponent = () => {
                     <Icon name="calendar" size={12} color="#888" />
                     <Text style={styles.cardMetaText}>{formatDateForRow(item.appointment_at)}</Text>
                     <Icon name="clock-o" size={12} color="#888" style={{ marginLeft: 14 }} />
-                    <Text style={styles.cardMetaText}>{formatTimeForRow(item.appointment_at)}</Text>
+                    <Text style={styles.cardMetaText}>{formatTime(formatTimeForRow(item.appointment_at))}</Text>
                 </View>
                 <View style={{ marginTop: 12 }}>
                     <AppointmentActionIcons
@@ -239,9 +259,9 @@ const TomorrowComponent = () => {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.WHITE_COLOR }}>
+        <View style={{ flex: 1, backgroundColor: '#F4F6F8' }}>
             {/* Top app bar */}
-            <View style={styles.header}>
+            {/* <View style={styles.header}>
                 <TouchableOpacity onPress={openDrawer} hitSlop={{ top: 12, left: 12, right: 12, bottom: 12 }}>
                     <Icon name="bars" size={20} color="black" />
                 </TouchableOpacity>
@@ -258,8 +278,14 @@ const TomorrowComponent = () => {
                             </View>
                     }
                 </TouchableOpacity>
-            </View>
-
+            </View> */}
+            <AppHeader
+                title="Tomorrow's Appointment"
+                onLeftPress={() => navigation.goBack()}
+                leftIconName="chevron-left"
+                rightType="none"
+                onRightPress={() => navigation.navigate('myProfile')}
+            />
             <FlatList
                 data={pageData}
                 keyExtractor={(item) => item.id}
@@ -346,14 +372,14 @@ const TomorrowComponent = () => {
                 }
             />
 
-            <ExpandableFab
+            {/* <ExpandableFab
                 mainColor={colors.ICON_COLOR_PRIMARY}
                 actions={[
                     { label: 'Add Appointment', icon: 'plus', color: '#D2434B', onPress: () => { } },
                     { label: 'Add Label', icon: 'plus', color: '#FCCE3B', onPress: () => { } },
                     { label: 'Add Doctor', icon: 'plus', color: '#55D88A', onPress: () => { } },
                 ]}
-            />
+            /> */}
 
             {/* <CloseAppointmentModal
                 visible={closeModalVisible}
@@ -397,7 +423,7 @@ const styles = StyleSheet.create({
     searchWrap: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F2F2F2',
+        backgroundColor: 'white',
         borderRadius: 8,
         paddingHorizontal: 12,
         height: 42,

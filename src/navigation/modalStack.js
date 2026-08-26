@@ -6,6 +6,7 @@ import ConfirmModal from '../modal/ConfirmModal';
 import EditModal from '../modal/EditModal';
 import EditAppointment from '../modal/EditAppointment';
 import CancelReason from '../modal/CancelReason';
+import EditDoctorModal from '../modal/EditDoctorModal'
 //
 const ModalStack = (Stack) => {
     return (
@@ -75,6 +76,13 @@ const ModalStack = (Stack) => {
             <Stack.Screen
                 name="CancelReason"
                 component={CancelReason}
+                options={{
+                    presentation: 'transparentModal',
+                    animation: 'fade',
+                }} />
+            <Stack.Screen
+                name="EditDoctorModal"
+                component={EditDoctorModal}
                 options={{
                     presentation: 'transparentModal',
                     animation: 'fade',

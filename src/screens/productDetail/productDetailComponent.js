@@ -220,9 +220,9 @@ const ProductDetailComponent = () => {
 
             <View style={styles.priceRow}>
                 <Text style={styles.mrp}>MRP {formatCurrency(product?.mrp)}</Text>
-                {product?.ptr > 0 && (
+                {/* {product?.ptr > 0 && (
                     <Text style={styles.ptr}>PTR {formatCurrency(product?.ptr)}</Text>
-                )}
+                )} */}
             </View>
 
             {!!product?.composition && (

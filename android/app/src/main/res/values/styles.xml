@@ -1,12 +1,24 @@
 <resources>
-
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <!-- Customize your theme here. -->
-        <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
-        <item name="android:statusBarColor">#f3f6fb</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowTranslucentStatus">false</item>
-    </style>
-
+	<!-- Base application theme. -->
+	<style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+		<!-- Customize your theme here. -->
+		<item name="android:editTextBackground">
+			@drawable/rn_edit_text_material
+		</item>
+		<item name="android:statusBarColor">
+			#6B9FE4
+		</item>
+		<item name="android:windowLightStatusBar">
+			false
+		</item>
+		<item name="android:windowTranslucentStatus">
+			false
+		</item>
+		<item name="colorAccent">
+			#6B9FE4
+		</item>
+		<item name="colorControlActivated">
+			#6B9FE4
+		</item>
+	</style>
 </resources>

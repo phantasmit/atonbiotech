@@ -3,11 +3,12 @@ import { TouchableOpacity, Text, View, StyleSheet, useWindowDimensions } from 'r
 import fonts from '../assets/fonts/fonts';
 import colors from '../assets/appColor/colors';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import GradientIconBadge from './GradientIconBadge';
 
 
 const DrawerMenu = (props) => {
-    const { containerData = {}, onPress, iconData = {}, textData = {}, isSelected = false, imageViewStyle={} } = props;
-    const { backgroundType, containerBG, borderBG } = containerData;
+    const { containerData = {}, onPress, iconData = {}, textData = {}, isSelected = false, imageViewStyle = {} } = props;
+    const { backgroundType, containerBG, borderBG, isIcon } = containerData;
     const { iconName, iconColor } = iconData;
     const { title, textColor } = textData;
     const { width } = useWindowDimensions(); // re-renders on rotation/split-screen
@@ -18,12 +19,19 @@ const DrawerMenu = (props) => {
         backgroundType == 3
             ? [styles.container, styles.backgroundBG(containerBG), styles.borderBG(borderBG)]
             : backgroundType == 2
-                ? [styles.container, styles.backgroundBG(containerBG)]
+                ? [styles.container, styles.backgroundBG(containerBG), { paddingVertical: 10 }]
                 : [styles.container];
 
     return (
         <TouchableOpacity onPress={onPress} style={containerStyle} activeOpacity={0.7}>
-            <Icon name={iconName} size={isTabletWidth ? 18 : 16} color={iconColor} />
+            {/* <Icon name={iconName} size={isTabletWidth ? 18 : 16} color={iconColor} /> */}
+            <GradientIconBadge
+                colors={['transparent', 'transparent']}
+                iconName={iconName}
+                iconColor={iconColor}
+                size={isTabletWidth ? 20 : 18}
+                iconSize={isTabletWidth ? 18 : 16}
+                borderRadius={0} />
             <Text
                 style={[
                     styles.title,
@@ -34,11 +42,11 @@ const DrawerMenu = (props) => {
             >
                 {title}
             </Text>
-            {backgroundType == 3 && (
-                <View style={imageViewStyle}>
-                    {/* style={{ transform: [{ rotate: '0deg' }] }}*/ }
+            {(backgroundType == 3 && isIcon) && (
+                <View>
+                    {/* style={{ transform: [{ rotate: '0deg' }] }}*/}
                     <Icon
-                        name={isSelected ? 'chevron-up' : 'chevron-down'}
+                        name={isSelected ? 'chevron-down' : 'chevron-right'}
                         size={isTabletWidth ? 14 : 12}
                         color={'#ABABAB'}
                     />
@@ -51,10 +59,10 @@ const DrawerMenu = (props) => {
 const styles = StyleSheet.create({
     container: {
         width: '95%',
-        marginVertical: 5,
+        marginVertical: 2,
         alignSelf: 'center',
         flexDirection: 'row',
-        paddingVertical: 10,
+        paddingVertical: 5,
         paddingHorizontal: 12,
         alignItems: 'center',
         justifyContent: 'flex-start',

@@ -117,7 +117,7 @@ const Tabs = () => {
                     height: barHeight,
                     paddingTop: 6,
                     paddingBottom: insets.bottom || 6,
-                    maxWidth: isTabletWidth ? 600 : '100%',
+                    maxWidth: isTabletWidth ? '100%' : '100%',
                     alignSelf: 'center',
                     width: '100%',
                     shadowColor: '#000',
@@ -134,7 +134,7 @@ const Tabs = () => {
             }}
         >
             <Tab.Screen
-                name="Today"
+                name="Todays"
                 component={TodayComponent}
                 options={{
                     tabBarIcon: ({ color }) => (<Icon name="calendar" size={iconSize} color={color} />),
@@ -144,7 +144,7 @@ const Tabs = () => {
                 }}
             />
             <Tab.Screen
-                name="Tomorrow"
+                name="Tomorrows"
                 component={TomorrowComponent}
                 options={{
                     tabBarIcon: ({ color }) => (<Icon name="calendar-o" size={iconSize} color={color} />),
@@ -154,7 +154,7 @@ const Tabs = () => {
                 }}
             />
             <Tab.Screen
-                name="AllAppointment"
+                name="AllAppointments"
                 component={AllAppointmentComponent}
                 options={{
                     tabBarIcon: ({ color }) => (<Icon name="calendar-o" size={iconSize} color={color} />),

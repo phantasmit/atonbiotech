@@ -20,28 +20,33 @@ import { useNavigation } from '@react-navigation/native';
 import { request } from '../services/services';
 import { CREATE_LABEL_API } from '../services/api-end-points';
 import { HTTP_METHODS } from '../services/api-constants';
-import { dispatch } from '../navigation/RootNavigation';
 import { useDispatch } from 'react-redux';
 import { fetchLabels } from '../screens/addDoctor/hospitalThunks';
+import { showErrorToast, showSuccessToast } from '../utils/Toastutils';
 
 
 // --- Responsive helpers -----------------------------------------------
 // Base reference width = 375 (iPhone SE / standard small phone)
 const BASE_WIDTH = 375;
 
-const getBreakpoint = (width) => {
-    if (width >= 900) return 'largeTablet'; // iPad Pro / landscape iPad
-    if (width >= 600) return 'tablet';       // iPad mini/portrait, Android tablets
-    return 'phone';                          // all phones, iOS & Android
+// Classify device by its SHORTER dimension so rotating a phone to
+// landscape doesn't accidentally make it look like a tablet.
+const getBreakpoint = (shortestSide) => {
+    if (shortestSide >= 900) return 'largeTablet'; // big iPad, either orientation
+    if (shortestSide >= 600) return 'tablet';       // iPad mini / Android tablet
+    return 'phone';                                  // all phones, iOS & Android
 };
 
-// Clamped scale factor so text/padding never blow up on huge tablets
-// or shrink too much on the smallest phones.
 const scale = (width, size) => {
     const factor = width / BASE_WIDTH;
     const clamped = Math.min(Math.max(factor, 0.9), 1.25);
     return Math.round(size * clamped);
 };
+
+// Fixed-ish estimates used only to give the ScrollView a real bounded
+// height to scroll within (see note below on why this matters).
+const HEADER_HEIGHT = 58;
+const FOOTER_HEIGHT = 68;
 // ------------------------------------------------------------------------
 
 const AddLabel = ({ visible, onClose, onSubmit }) => {
@@ -50,9 +55,10 @@ const AddLabel = ({ visible, onClose, onSubmit }) => {
     const { width, height } = useWindowDimensions();
     const insets = useSafeAreaInsets();
 
-    const breakpoint = getBreakpoint(width);
+    const isLandscape = width > height;
+    const shortestSide = Math.min(width, height);
+    const breakpoint = getBreakpoint(shortestSide);
     const isTabletWidth = breakpoint !== 'phone';
-
 
     const [labelName, setLabelName] = useState('')
     const [labelDiscription, setLabelDiscription] = useState('')
@@ -77,36 +83,72 @@ const AddLabel = ({ visible, onClose, onSubmit }) => {
                 "description": labelDiscription
             }))
             dispatch(fetchLabels())
-            alert('Assign Successfully!')
+            showSuccessToast('', 'Label Create Successfully!')
             navigation.goBack()
         } catch (e) {
-
-            alert(e?.response?.data?.message)
+            showErrorToast(e?.response?.data?.message)
         } finally {
             resetForm();
             setIsDisable(false)
         }
         //onSubmit?.({ name: "", description: "" });
-        //
     };
 
     const isValid = labelName && labelDiscription;
 
+    // --- Sizing -----------------------------------------------------------
+    // Actual vertical room available, after safe areas + a small outer
+    // margin. This (not just `height * 0.85`) is what the card and the
+    // scrollable body get measured against, so short landscape screens
+    // no longer get clipped.
+    const outerMargin = 24;
+    const availableHeight = Math.max(
+        200,
+        height - insets.top - insets.bottom - outerMargin
+    );
 
-    // Card sizing: percentage/clamped width so it behaves correctly from a
-    // 360dp Android phone up through a 1024pt+ iPad Pro landscape.
     const cardStyle = (() => {
         if (breakpoint === 'largeTablet') {
-            return { width: Math.min(560, width * 0.45), maxHeight: height * 0.85 };
+            return {
+                width: Math.min(560, width * 0.45),
+                maxHeight: Math.min(availableHeight, height * 0.85),
+            };
         }
         if (breakpoint === 'tablet') {
-            return { width: Math.min(560, width * 0.6), maxHeight: height * 0.85 };
+            return {
+                width: Math.min(560, width * 0.6),
+                maxHeight: Math.min(availableHeight, height * 0.85),
+            };
         }
-        // phone (iOS + Android)
-        return { width: width - 32, maxHeight: height * 0.88 };
+        // phone
+        if (isLandscape) {
+            // Capped-width centered dialog instead of edge-to-edge, which
+            // both looks better and leaves more of the limited height for
+            // the actual form content.
+            return { width: Math.min(560, width * 0.78), maxHeight: availableHeight };
+        }
+        return { width: width - 32, maxHeight: availableHeight };
     })();
 
+    // A real, bounded height for the scrollable body - previously the
+    // ScrollView only had `flexGrow: 0` with no bounded height of its own,
+    // so on short screens (landscape) it rendered at full content height
+    // and got clipped by the card's `overflow: hidden`, which is exactly
+    // what was happening to the description field + buttons in the
+    // screenshot.
+    const scrollMaxHeight = Math.max(
+        80,
+        (cardStyle.maxHeight ?? availableHeight) - HEADER_HEIGHT - FOOTER_HEIGHT
+    );
+
     const fontScale = (size) => scale(width, size);
+
+    // Description box height adapts to available space instead of a fixed
+    // 140px, which was too tall to fit on short landscape screens.
+    const descriptionHeight = Math.max(
+        60,
+        Math.min(140, scrollMaxHeight - 140)
+    );
 
     return (
         <Modal
@@ -131,32 +173,30 @@ const AddLabel = ({ visible, onClose, onSubmit }) => {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Scrollable body so nothing gets clipped on small phones
-                        when the dropdown + a picker are open at the same time */}
+                    {/* Scrollable body - given a real bounded height so it
+                        actually scrolls instead of overflowing past the card
+                        and getting clipped (the landscape bug). */}
                     <ScrollView
-                        style={styles.bodyScroll}
+                        style={[styles.bodyScroll, { maxHeight: scrollMaxHeight }]}
                         contentContainerStyle={styles.body}
                         keyboardShouldPersistTaps="handled"
                         showsVerticalScrollIndicator={false}
                     >
-                        {/* Doctor select labelName && labelDiscription*/}
-                        <Text style={[styles.label, { fontSize: fontScale(13) }]}>Label Name</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={labelName}
-                            onChangeText={(v) => setLabelName(v)}
-                            keyboardType={'default'}
-                            autoCapitalize={'sentences'}
-                            placeholderTextColor="#999"
-                        />
+                        <View>
+                            <Text style={[styles.label, { fontSize: fontScale(13) }]}>Label Name</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={labelName}
+                                onChangeText={(v) => setLabelName(v)}
+                                keyboardType={'default'}
+                                autoCapitalize={'sentences'}
+                                placeholderTextColor="#999"
+                            />
 
-
-                        {/* Time + Date row: always stack on phones, side-by-side on tablets */}
-                        <View style={[styles.rowFields, !isTabletWidth && styles.rowFieldsStacked]}>
-                            <View style={styles.fieldCol}>
+                            <View style={styles.fieldColStacked}>
                                 <Text style={[styles.label, { fontSize: fontScale(13) }]}>Label Description</Text>
                                 <TextInput
-                                    style={[styles.input, styles.addressInput]}
+                                    style={[styles.input, styles.addressInput, { height: descriptionHeight }]}
                                     value={labelDiscription}
                                     onChangeText={(v) => setLabelDiscription(v)}
                                     multiline
@@ -164,14 +204,7 @@ const AddLabel = ({ visible, onClose, onSubmit }) => {
                                     placeholderTextColor="#999"
                                 />
                             </View>
-
-
                         </View>
-
-                        {/* iOS inline spinners get an explicit Done/Cancel bar
-                            since the OS never dismisses them on its own */}
-
-
                     </ScrollView>
 
                     {/* Footer */}
@@ -223,61 +256,9 @@ const styles = StyleSheet.create({
     body: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 8 },
     label: { fontWeight: '700', color: '#333', marginBottom: 8 },
 
-    doctorRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#DDD',
-        borderRadius: 8,
-        paddingHorizontal: 14,
-        paddingVertical: 14,
-        gap: 10,
-    },
-    doctorText: { flex: 1, color: '#222', fontWeight: '500' },
-    placeholderText: { color: '#999', fontWeight: '400' },
-    selectOneText: { fontSize: 13, color: '#999' },
-
-    doctorDropdown: {
-        marginTop: 6,
-        borderWidth: 1,
-        borderColor: '#EEE',
-        borderRadius: 8,
-        backgroundColor: '#fff',
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    doctorOption: { paddingHorizontal: 16, paddingVertical: 13 },
-    doctorOptionText: { fontSize: 14, color: '#222' },
-    optionDivider: { height: 1, backgroundColor: '#F0F0F0' },
-
-    rowFields: { flexDirection: 'row', gap: 16, marginTop: 20 },
-    rowFieldsStacked: { flexDirection: 'column', gap: 20 },
+    rowFields: { flexDirection: 'row', gap: 16 },
     fieldCol: { flex: 1 },
-    fieldInput: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#DDD',
-        borderRadius: 8,
-        paddingHorizontal: 14,
-        height: 52,
-        gap: 10,
-    },
-    fieldText: { color: '#222' },
-
-    pickerWrap: { marginTop: 8 },
-    pickerActions: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        gap: 24,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-    },
-    pickerActionCancel: { color: '#888', fontWeight: '600', fontSize: 14 },
-    pickerActionDone: { color: colors.ICON_COLOR_PRIMARY, fontWeight: '700', fontSize: 14 },
+    fieldColStacked: { marginTop: 20 },
 
     footer: {
         flexDirection: 'row',
@@ -308,7 +289,6 @@ const styles = StyleSheet.create({
         borderColor: '#E4E7EB',
     },
     addressInput: {
-        height: 140,
         paddingTop: 14,
     }
 });

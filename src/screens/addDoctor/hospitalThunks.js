@@ -46,6 +46,7 @@ export const fetchAppointment = createAsyncThunk(
             const result = await request(APPOINTMENT_LIST_API(), HTTP_METHODS.GET, payload);
             return result.response.data;
         } catch (err) {
+           // alert('test'+JSON.stringify(err?.message))
             return rejectWithValue(err?.message || 'Failed to fetch appointment');
         }
     }

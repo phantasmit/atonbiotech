@@ -3,6 +3,10 @@ const BASE_URL = "https://konsylpharma.in/api/v1";
 export const IMAGE_BASE_URL = "https://konsylpharma.in/img";
 //LOGIN API
 export const LOGIN_API = () => `${BASE_URL}/auth/login`;
+export const FORGOT_PASSWORD_API = () => `${BASE_URL}/auth/forgot-password`;
+export const REGISTER_API = () => `${BASE_URL}/auth/register-distributor`;
+export const VERIFY_OTP_API = () => `${BASE_URL}/auth/verify-otp`;
+export const RESET_PASSWORD_API = () => `${BASE_URL}/auth/reset-password`;
 //Profile Management
 export const PROFILE_API = () => `${BASE_URL}/profile`;
 export const UPDATE_PROFILE_API = () => `${BASE_URL}/profile`;
@@ -49,3 +53,5 @@ export const GET_PRIVACY_POLICY_API = () => `${BASE_URL}/pages/privacy-policy`;
 export const GET_TERM_CONDITION_API = () => `${BASE_URL}/pages/terms-conditions`;
 //CONTACT US
 export const GET_CONTACT_US_API = () => `${BASE_URL}/pages/contact-us`;
+//Brochure
+export const GET_BROCHURE_API = () => `${BASE_URL}/brochure`;

@@ -18,6 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { request } from '../../services/services';
 import { GET_ABOUT_US_API, GET_CONTACT_US_API } from '../../services/api-end-points';
 import { HTTP_METHODS } from '../../services/api-constants';
+import AppHeader from '../../component/AppHeader';
 
 // ---------- Helpers ----------
 
@@ -278,30 +279,14 @@ const ContactUsComponent = () => {
     }, [fetchOffers]);
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+        <View style={{ flex: 1, backgroundColor: '#F4F6F8' }}>
             {/* Header */}
-            <View
-                style={[
-                    styles.header,
-                    {
-                        paddingTop: insets.top > 0 ? insets.top : 14,
-                        paddingHorizontal: isTablet ? 24 : 16,
-                        backgroundColor: '#f3f6fb',
-                    },
-                ]}
-            >
-                <TouchableOpacity
-                    onPress={() => navigation.goBack()}
-                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                >
-                    <Icon name="arrow-left" size={isTablet ? 20 : 16} color="black" />
-                </TouchableOpacity>
-                <Text style={[styles.headerTitle, { fontSize: isTablet ? 22 : 19 }]}>
-                    {`Contact Us`}
-                </Text>
-                <View style={{ width: 20 }} />
-            </View>
-
+            <AppHeader
+                title={`Contact Us`}
+                onLeftPress={() => navigation.goBack()}
+                leftIconName="chevron-left"
+                rightType="none"
+            />
             {/* Content */}
             <View style={{ flex: 1 }}>
                 {loading && (

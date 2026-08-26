@@ -14,6 +14,7 @@ import {
     Platform,
     LayoutAnimation,
     UIManager,
+    Clipboard
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,7 +25,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { request } from '../../services/services';
 import { ADD_FAVORITE_API, ADD_PRODUCT_TO_HOSPITAL_API, ADD_PRODUCT_TO_LABEL_API, GET_PRODUCT_API, PRODUCT_LIST_API, REMOVE_FAVORITE_API } from '../../services/api-end-points';
 import { HTTP_METHODS } from '../../services/api-constants';
-
+import AppHeader from '../../component/AppHeader';
+import ProductImageGallery from '../gallaryScreen/Productimagegallery';
+import { showErrorToast, showSuccessToast } from '../../utils/Toastutils';
 const PER_PAGE = 10;
 
 // Enable smooth LayoutAnimation transitions on Android (no-op on iOS, which has it by default)
@@ -104,7 +107,6 @@ const ProductComponent = () => {
             const payload = result?.response?.data;
             const newItems = payload?.data ?? [];
             if (!isMountedRef.current) return;
-
             setAllItems((prev) => (page === 1 ? newItems : [...prev, ...newItems]));
             setCurrentPage(payload?.current_page ?? page);
             setLastPage(payload?.last_page ?? page);
@@ -157,7 +159,7 @@ const ProductComponent = () => {
             setAllItems((prev) =>
                 prev.map((p) => (p.id === item.id ? { ...p, is_favorited: !nextFavorite } : p))
             );
-            alert(err?.response?.data?.message || 'Could not update favorite');
+            showErrorToast(err?.response?.data?.message || 'Could not update favorite')
         } finally {
             if (isMountedRef.current) setFavoriteLoadingId(null);
         }
@@ -194,6 +196,7 @@ const ProductComponent = () => {
         list = [...list].sort((a, b) =>
             sortAsc ? (a.name || '').localeCompare(b.name || '') : (b.name || '').localeCompare(a.name || '')
         );
+        //Clipboard.setString(JSON.stringify(list))
         return list;
     }, [allItems, search, sortAsc, isWithinDateFilter]);
 
@@ -253,25 +256,23 @@ const ProductComponent = () => {
         setSelectionMode(false);
         setSelectedIds({});
         setAssignType(null);
-        //navigation.navigate('AssignProduct')
         navigation.navigate('AssignProduct', {
             optionId: optionId,
             onSubmit: async (payload) => {
-                //console.log('Selected labels JSON:', payload);
                 const selectedId = selectedProducts.map(({ id }) => id);
                 setAssignLoading(true)
-                //alert(JSON.stringify(payload.id) + " >><<  " + [selectedId] + " " + optionId)
                 try {
                     if (optionId == 0) {
                         await request(ADD_PRODUCT_TO_LABEL_API(payload.id), HTTP_METHODS.POST, JSON.stringify({ "product_ids": selectedId }))
+                        showSuccessToast('Product Assign Successfully!')
                     } else {
-                        //await request(ADD_PRODUCT_TO_LABEL_API(payload.id), HTTP_METHODS.POST, JSON.stringify({ "product_ids": selectedId }))
                         await request(ADD_PRODUCT_TO_HOSPITAL_API(payload.id), HTTP_METHODS.POST, JSON.stringify({ "product_ids": selectedId }))
+                        showSuccessToast('Product Assign Successfully!')
                     }
-                    alert('Assign Successfully!')
                     setAssignLoading(false)
+                    navigation?.navigate('assignProductList', { ...payload, indexPos: (optionId == 0) ? 2 : 1 })
                 } catch (e) {
-                    alert(e?.response?.data?.message)
+                    showErrorToast(e?.response?.data?.message)
                 }
             },
         });
@@ -285,7 +286,7 @@ const ProductComponent = () => {
     };
 
     // ---------- Render helpers ----------
-    const renderListItem = ({ item }) => {
+    const renderListItem = ({ item, index }) => {
 
         const isFavorite = !!item.is_favorited;
         const isFavoriteBusy = favoriteLoadingId === item.id;
@@ -294,7 +295,11 @@ const ProductComponent = () => {
         return (
             <TouchableOpacity
                 activeOpacity={selectionMode ? 0.7 : 1}
-                onPress={() => selectionMode ? toggleSelect(item.id) : navigation.navigate('productDetail', item)}
+                onPress={() => selectionMode ? toggleSelect(item.id) : navigation.navigate('ProductImageGallery', {
+                    images: displayedItems,
+                    initialIndex: index,
+                    selectedProductId: item.id
+                })}//navigation.navigate('productDetail', item)
                 style={styles.card}
             >
                 {selectionMode && (
@@ -318,7 +323,7 @@ const ProductComponent = () => {
                     )}
                     <View style={styles.priceRow}>
                         <Text style={styles.itemMrp}>MRP {formatCurrency(item.mrp)}</Text>
-                        {item.ptr > 0 && <Text style={styles.itemPtr}>PTR {formatCurrency(item.ptr)}</Text>}
+                        {/* {item.ptr > 0 && <Text style={styles.itemPtr}>PTR {formatCurrency(item.ptr)}</Text>} */}
                     </View>
                 </View>
                 {!selectionMode && (
@@ -339,19 +344,23 @@ const ProductComponent = () => {
         );
     };
 
-    const renderGridItem = ({ item }) => {
+    const renderGridItem = ({ item, index }) => {
         const isSelected = !!selectedIds[item.id];
         const isFavorite = !!item.is_favorited;
         const isFavoriteBusy = favoriteLoadingId === item.id;
         return (
             <TouchableOpacity
                 activeOpacity={selectionMode ? 0.7 : 1}
-                onPress={() => selectionMode && toggleSelect(item.id)}
+                onPress={() => selectionMode ? toggleSelect(item.id) : navigation.navigate('ProductImageGallery', {
+                    images: displayedItems,
+                    initialIndex: index,
+                    selectedProductId: item.id
+                })}
                 style={styles.gridCard}
             >
                 <View style={styles.gridImageWrap}>
                     {item.thumb ? (
-                        <Image source={{ uri: item.thumb }} style={styles.gridImage} />
+                        <Image source={{ uri: item.thumb }} style={styles.gridImage} resizeMode="cover" />
                     ) : (
                         <View style={[styles.gridImage, styles.imagePlaceholder]}>
                             <Icon name="medkit" size={26} color="#bbb" />
@@ -364,7 +373,7 @@ const ProductComponent = () => {
                     )}
                     {!selectionMode && (
                         <TouchableOpacity
-                            style={styles.gridFavoriteBtn}
+                            style={{ position: "absolute", alignSelf: "flex-start", margin: 10 }}
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             disabled={isFavoriteBusy}
                             onPress={() => toggleFavorite(item)}
@@ -411,15 +420,14 @@ const ProductComponent = () => {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+        <View style={{ flex: 1, backgroundColor: '#F4F6F8' }}>
             {/* Header */}
-            <View style={[styles.header, { paddingTop: insets.top > 0 ? 14 : 14, backgroundColor: '#f3f6fb' }]}>
-                <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                    <Icon name="arrow-left" size={16} color="black" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>{route.params?.name}</Text>
-                <View style={{ width: 20 }} />
-            </View>
+            <AppHeader
+                title={route.params?.name}
+                onLeftPress={() => navigation.goBack()}
+                leftIconName="chevron-left"
+                rightType="none"
+            />
 
             {/* Search + controls */}
             <View style={[styles.controlsRow, isTablet && styles.controlsRowTablet]}>
@@ -448,7 +456,7 @@ const ProductComponent = () => {
                     <Text style={styles.sortText}>A{sortAsc ? '↓' : '↑'}Z</Text>
                 </TouchableOpacity>
 
-                {/* Assign dropdown trigger — sits right beside the sort icon */}
+
                 <TouchableOpacity
                     style={[styles.iconSquareBtn, styles.assignBtn]}
                     onPress={openAssignMenu}
@@ -458,7 +466,7 @@ const ProductComponent = () => {
                     <Icon name="chevron-down" size={9} color="#333" style={{ marginLeft: 4 }} />
                 </TouchableOpacity>
 
-                {/* Grid / list layout toggle */}
+
                 <TouchableOpacity
                     style={styles.iconSquareBtn}
                     onPress={toggleViewMode}
@@ -480,7 +488,7 @@ const ProductComponent = () => {
             {selectionMode && (
                 <View style={styles.selectionBanner}>
                     <Text style={styles.selectionBannerText}>
-                        {assignTypeLabel} — select products
+                        {assignTypeLabel} — Select Products
                     </Text>
                     <TouchableOpacity onPress={cancelSelection}>
                         <Text style={styles.selectionCancelText}>Cancel</Text>
@@ -596,8 +604,18 @@ const ProductComponent = () => {
                     </View>
                 </View>
             </Modal>
+
+
+
+            {/* <ProductImageGallery
+                images={displayedItems}
+                initialIndex={5}
+                navigation={navigation}
+            /> */}
         </View>
     );
+
+
 };
 
 const styles = StyleSheet.create({
@@ -624,14 +642,14 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F2F2F2',
+        backgroundColor: 'white',
         borderRadius: 8,
         paddingHorizontal: 12,
         height: 44,
     },
     searchInput: { flex: 1, fontSize: 14, color: '#222', padding: 0 },
     iconSquareBtn: {
-        width: 44, height: 44, borderRadius: 10, backgroundColor: '#F2F2F2',
+        width: 44, height: 44, borderRadius: 10, backgroundColor: 'white',
         alignItems: 'center', justifyContent: 'center', flexDirection: 'row',
     },
     assignBtn: { width: 'auto', paddingHorizontal: 10 },
