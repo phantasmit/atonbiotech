@@ -86,7 +86,7 @@ export default function App() {
         <Provider store={store}>
             <PersistGate persistor={persistor}>
                 <SafeAreaProvider>
-                    <SafeAreaView style={{ flex: 1, backgroundColor: "#f3f6fb" }} edges={["top", 'bottom']}>
+                    <SafeAreaView style={{ flex: 1, backgroundColor: "#f3f6fb" }} edges={[ ]}>
                         <PaperProvider
                             settings={{
                                 rippleEffectEnabled: false
@@ -99,17 +99,18 @@ export default function App() {
                                 },
                             }}
                         >
+                            <StatusBar hidden={true} />
                             {/* <StatusBar
                                 barStyle="dark-content"
                                 backgroundColor={'#f3f6fb'}
                                 translucent={false}
                             /> */}
 
-                            <StatusBar
+                            {/* <StatusBar
                                 barStyle="dark-content"
                                 backgroundColor={userid ? '#6B9FE4' : '#6B9FE4'}
                                 translucent={false}
-                            />
+                            /> */}
                             <RouteContainer />
 
                             <DownloadCompleteModal

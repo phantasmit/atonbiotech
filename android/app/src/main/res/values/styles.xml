@@ -1,6 +1,8 @@
 <resources>
 	<!-- Base application theme. -->
 	<style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+		<!-- Hide status bar -->
+		<item name="android:windowFullscreen">true</item>
 		<!-- Customize your theme here. -->
 		<item name="android:editTextBackground">
 			@drawable/rn_edit_text_material

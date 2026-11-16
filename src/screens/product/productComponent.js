@@ -295,11 +295,13 @@ const ProductComponent = () => {
         return (
             <TouchableOpacity
                 activeOpacity={selectionMode ? 0.7 : 1}
-                onPress={() => selectionMode ? toggleSelect(item.id) : navigation.navigate('ProductImageGallery', {
-                    images: displayedItems,
-                    initialIndex: index,
-                    selectedProductId: item.id
-                })}//navigation.navigate('productDetail', item)
+                onPress={() => selectionMode ? toggleSelect(item.id) :
+                    navigation.navigate('ProductImageGallery', {
+                        images: displayedItems,
+                        initialIndex: index,
+                        selectedProductId: item.id
+                    })
+                }//navigation.navigate('productDetail', item)
                 style={styles.card}
             >
                 {selectionMode && (

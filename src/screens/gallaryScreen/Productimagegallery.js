@@ -778,8 +778,8 @@ export default function ProductImageGallery({ route, navigation }) {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#000" />
-
+            {/* <StatusBar barStyle="light-content" backgroundColor="#000" /> */}
+            {/* <StatusBar hidden={true} /> */}
             <ImageViewer
                 ref={imageViewerRef}
                 imageUrls={imageUrls}
@@ -791,8 +791,9 @@ export default function ProductImageGallery({ route, navigation }) {
                 enableImageZoom
                 saveToLocalByLongPress={false}
                 backgroundColor="#000"
+                fitWidth={true}
                 renderIndicator={(currentIdx, allSize) => (
-                    <View pointerEvents="none" style={[styles.indicatorWrap, { bottom: insets.bottom + 20, flexDirection: "row", paddingHorizontal: 20 }]}>
+                    <View style={[styles.indicatorWrap, { bottom: insets.bottom + 20, flexDirection: "row", paddingHorizontal: 20 }]}>
                         <View style={{ flexDirection: 'row' }}>
                             <TouchableOpacity
                                 onPress={openDrawer}
@@ -815,14 +816,14 @@ export default function ProductImageGallery({ route, navigation }) {
                                 <Icon name="info-circle" size={iconSize} color="#fff" solid />
                             </TouchableOpacity>
                         </View>
-                        <View style={{ position: "absolute", marginLeft: Dimensions.get('window').width / 2 - 50 }}>
+                        {/* <View style={{ position: "absolute", marginLeft: Dimensions.get('window').width / 2 - 50 }}>
 
                             <View style={styles.indicatorPill}>
                                 <Text style={[styles.indicatorText, { fontSize: isTablet ? 15 : 13 }]}>
                                     {currentIdx} / {allSize}
                                 </Text>
                             </View>
-                        </View>
+                        </View> */}
                     </View>
                 )}
                 renderHeader={() => (
@@ -867,7 +868,7 @@ export default function ProductImageGallery({ route, navigation }) {
             <Modal visible={infoVisible} transparent animationType="fade" onRequestClose={() => setInfoVisible(false)}>
                 <TouchableOpacity style={styles.infoOverlay} activeOpacity={1} onPress={() => setInfoVisible(false)}>
                     <View
-                        style={[styles.infoPanel, { paddingBottom: insets.bottom + 20, maxWidth: isTablet ? 480 : '100%' }]}
+                        style={[styles.infoPanel, { paddingBottom: insets.bottom + 20 }]}
                     >
                         {imageUrls[currentIndex]?.productName ? (
                             <Text style={styles.infoTitle}>{imageUrls[currentIndex]?.productName}</Text>
@@ -930,7 +931,7 @@ export default function ProductImageGallery({ route, navigation }) {
 
 function InfoRow({ label, value }) {
     return (
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow]}>
             <Text style={styles.infoLabel}>{label}</Text>
             <Text style={styles.infoValue}>{value}</Text>
         </View>
@@ -1000,7 +1001,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         paddingTop: 20,
         alignSelf: 'center',
-        width: '100%',
+        width: '60%',
     },
     infoTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginBottom: 14 },
     infoRow: {
@@ -1010,8 +1011,8 @@ const styles = StyleSheet.create({
         borderBottomWidth: StyleSheet.hairlineWidth,
         borderBottomColor: '#E4E7EB',
     },
-    infoLabel: { fontSize: 14, color: '#8A8A8A' },
-    infoValue: { fontSize: 14, color: '#1A1A1A', fontWeight: '600', marginLeft: 5, flexWrap: 'wrap', textAlign: "left", maxWidth: Dimensions.get('window').width / 2 - 10 },
+    infoLabel: { fontSize: 14, color: '#8A8A8A', flex: 0.5 },
+    infoValue: { fontSize: 14, color: '#1A1A1A', fontWeight: '600', marginLeft: 5, flexWrap: 'wrap', textAlign: "left", maxWidth: Dimensions.get('window').width / 2 - 10, flex: 1 },
     infoCloseBtn: {
         marginTop: 18,
         paddingVertical: 12,

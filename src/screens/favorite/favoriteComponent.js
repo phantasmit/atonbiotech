@@ -13,7 +13,8 @@ import {
     useWindowDimensions,
     Platform,
     LayoutAnimation,
-    UIManager
+    UIManager,
+    Clipboard
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -160,7 +161,7 @@ const FavoriteComponent = () => {
             const q = search.trim().toLowerCase();
             list = list.filter((item) => item?.product.name?.toLowerCase().includes(q));
         }
-        list = list.filter((item) => isWithinDateFilter(item.modifiedDate));
+        list = list.filter((item) => isWithinDateFilter(item?.modifiedDate));
         list = [...list].sort((a, b) =>
             sortAsc ? (a?.product.name || '').localeCompare(b?.product.name || '') : (b?.product.name || '').localeCompare(a?.product.name || '')
         );
@@ -214,11 +215,21 @@ const FavoriteComponent = () => {
             <TouchableOpacity
                 activeOpacity={selectionMode ? 0.7 : 1}
                 onPress={() => {
+                    const updatedItems = displayedItems.map(item => ({
+                        id: item.product.id,
+                        label_id: item.label_id,
+                        ...item.product,
+                      }));
                     navigation.navigate('ProductImageGallery', {
-                        images: displayedItems,
+                        images: updatedItems,
                         initialIndex: index,
-                        selectedProductId: item.id
+                        selectedProductId: updatedItems[index].id
                     })
+                    // navigation.navigate('ProductImageGallery', {
+                    //     images: displayedItems,
+                    //     initialIndex: index,
+                    //     selectedProductId: item.id
+                    // })
                     // navigation.navigate('productDetail', item.product) 
                 }}
                 style={styles.card}

@@ -171,9 +171,21 @@ const TomorrowComponent = () => {
     //     return { datePart, timePart };
     // }
 
+    // const formatTimeForRow = (d) => {
+    //     const date = d instanceof Date ? d : new Date(d);
+    //     return d ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    // };
+
     const formatTimeForRow = (d) => {
+        if (!d) return '';
+      
         const date = d instanceof Date ? d : new Date(d);
-        return d ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      
+        return date.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        }).toUpperCase();
     };
 
     const formatDateForRow = (d) => {
@@ -216,7 +228,7 @@ const TomorrowComponent = () => {
                 <Text style={[styles.cell, { flex: 1.3 }]} numberOfLines={1}>{item.doctor_name}</Text>
                 <Text style={[styles.cell, { flex: 1.2 }]}>{formatDateForRow(item.appointment_at)}</Text>
                 {/* <Text style={[styles.cell, { flex: 1 }]}>{formatTimeForRow(item.appointment_at)}</Text> */}
-                <Text style={[styles.cell, { flex: 1 }]}>{formatTime(formatTimeForRow(item.appointment_at))}</Text>
+                <Text style={[styles.cell, { flex: 1 }]}>{formatTimeForRow(item.appointment_at)}</Text>
                 <View style={{ flex: 0.9 }}><StatusBadge status={item.status} /></View>
                 <View style={{ flex: 1.1, alignItems: 'flex-end' }}>
                     <AppointmentActionIcons
@@ -243,7 +255,7 @@ const TomorrowComponent = () => {
                     <Icon name="calendar" size={12} color="#888" />
                     <Text style={styles.cardMetaText}>{formatDateForRow(item.appointment_at)}</Text>
                     <Icon name="clock-o" size={12} color="#888" style={{ marginLeft: 14 }} />
-                    <Text style={styles.cardMetaText}>{formatTime(formatTimeForRow(item.appointment_at))}</Text>
+                    <Text style={styles.cardMetaText}>{formatTimeForRow(item.appointment_at)}</Text>
                 </View>
                 <View style={{ marginTop: 12 }}>
                     <AppointmentActionIcons
